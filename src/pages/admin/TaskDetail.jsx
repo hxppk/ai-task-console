@@ -191,6 +191,23 @@ export default function TaskDetail({ mode = 'admin' }) {
             rowKey="id"
             size="middle"
             pagination={false}
+            expandable={{
+              expandedRowRender: (record) => (
+                <Table
+                  dataSource={record.items}
+                  columns={[
+                    { title: '条目编号', dataIndex: 'id', key: 'id', width: 100 },
+                    { title: '名称', dataIndex: 'name', key: 'name' },
+                    { title: '状态', dataIndex: 'status', key: 'status', width: 80,
+                      render: (s) => <Tag>{s}</Tag> },
+                  ]}
+                  size="small"
+                  pagination={false}
+                  rowKey="id"
+                />
+              ),
+              rowExpandable: (record) => record.items && record.items.length > 1,
+            }}
           />
         </Card>
 

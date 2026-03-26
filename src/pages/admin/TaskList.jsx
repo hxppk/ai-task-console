@@ -53,7 +53,6 @@ export default function TaskList({ mode = 'admin' }) {
     { title: '任务编号', dataIndex: 'id', key: 'id', width: 180 },
     { title: '任务名称', dataIndex: 'name', key: 'name', ellipsis: true },
     { title: '来源', dataIndex: 'source', key: 'source', width: 100 },
-    { title: 'Skill类型', dataIndex: 'skillType', key: 'skillType', width: 100 },
     { title: '子任务数', dataIndex: 'subTaskCount', key: 'subTaskCount', width: 90 },
     {
       title: '完成进度',
@@ -103,8 +102,14 @@ export default function TaskList({ mode = 'admin' }) {
   ]
 
   const bizColumns = [
-    { title: '任务名称', dataIndex: 'name', key: 'name', ellipsis: true },
-    { title: '券数量', dataIndex: 'subTaskCount', key: 'subTaskCount', width: 80 },
+    {
+      title: 'OA 编号',
+      key: 'oaNumber',
+      width: 140,
+      render: (_, record) => record.oaNumber ? <a>{record.oaNumber}</a> : '—',
+    },
+    { title: '活动名称', dataIndex: 'name', key: 'name', ellipsis: true },
+    { title: '券数量', key: 'couponCount', width: 80, render: (_, r) => r.totalCouponCount },
     {
       title: '确认进度',
       key: 'progress',
@@ -112,13 +117,13 @@ export default function TaskList({ mode = 'admin' }) {
       render: (_, record) => (
         <Space>
           <Progress
-            percent={Math.round((record.confirmedCount / record.subTaskCount) * 100)}
+            percent={record.totalCouponCount ? Math.round((record.confirmedCount / record.totalCouponCount) * 100) : 0}
             size="small"
             style={{ width: 80 }}
             showInfo={false}
           />
           <span style={{ fontSize: 13, color: '#4e5969' }}>
-            {record.confirmedCount}/{record.subTaskCount}
+            {record.confirmedCount}/{record.totalCouponCount}
           </span>
         </Space>
       ),

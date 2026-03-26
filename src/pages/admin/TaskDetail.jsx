@@ -5,6 +5,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons'
 import {
   getTask,
   getSubTasksForTask,
+  getCouponItemsForTask,
   ADMIN_TASK_STATUS,
   ADMIN_TASK_STATUS_COLOR,
   ADMIN_COUPON_STATUS,
@@ -48,7 +49,18 @@ export default function TaskDetail({ mode = 'admin' }) {
   const adminColumns = [
     { title: '编号', dataIndex: 'id', key: 'id', width: 100 },
     { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true },
-    { title: '类型', dataIndex: 'skillType', key: 'skillType', width: 80 },
+    { title: 'Skill类型', dataIndex: 'skillType', key: 'skillType', width: 110 },
+    { title: '产出数', dataIndex: 'itemCount', key: 'itemCount', width: 80 },
+    {
+      title: '进度',
+      key: 'progress',
+      width: 100,
+      render: (_, record) => (
+        <span style={{ fontSize: 13, color: '#4e5969' }}>
+          {record.completedItemCount}/{record.itemCount}
+        </span>
+      ),
+    },
     {
       title: '状态',
       dataIndex: 'status',
@@ -97,19 +109,26 @@ export default function TaskDetail({ mode = 'admin' }) {
       render: (_, record) => record.ext?.amount,
     },
     {
+      title: '适用范围',
+      key: 'extScope',
+      width: 100,
+      render: (_, record) => record.ext?.scope,
+    },
+    {
       title: '状态',
       key: 'bizStatus',
       width: 100,
-      render: (_, record) => (
-        <Tag color={BIZ_COUPON_STATUS_COLOR[record.ext?.bizStatus]}>{record.ext?.bizStatus}</Tag>
-      ),
+      render: (_, record) => {
+        const bizStatus = record.ext?.bizStatus
+        return <Tag color={BIZ_COUPON_STATUS_COLOR[bizStatus]}>{bizStatus}</Tag>
+      },
     },
     {
       title: '操作',
       key: 'action',
       width: 100,
       render: (_, record) => (
-        record.ext?.bizStatus === BIZ_COUPON_STATUS.PENDING_CONFIRM ? (
+        record.ext?.bizStatus === '待确认' ? (
           <Button type="link" size="small">
             去确认
           </Button>
@@ -142,12 +161,11 @@ export default function TaskDetail({ mode = 'admin' }) {
         <p className={styles.taskName}>{task.name}</p>
 
         <Card size="small">
-          <Descriptions column={6} size="small">
+          <Descriptions column={5} size="small">
             <Descriptions.Item label="OA单号">
               {task.oaNumber ? <a>{task.oaNumber}</a> : '—'}
             </Descriptions.Item>
             <Descriptions.Item label="来源">{task.source}</Descriptions.Item>
-            <Descriptions.Item label="Skill类型">{task.skillType}</Descriptions.Item>
             <Descriptions.Item label="关联活动">{task.activity}</Descriptions.Item>
             <Descriptions.Item label="发起人">{task.creator}</Descriptions.Item>
             <Descriptions.Item label="创建时间">{task.createdAt}</Descriptions.Item>
@@ -165,7 +183,7 @@ export default function TaskDetail({ mode = 'admin' }) {
         <Card
           size="small"
           title="子任务清单"
-          extra={<span style={{ color: '#86909c', fontSize: 13 }}>共 {subTasks.length} 个，已完成 {task.completedCount}/{task.subTaskCount}</span>}
+          extra={<span style={{ color: '#86909c', fontSize: 13 }}>共 {subTasks.length} 个 Skill，已完成 {task.completedCount}/{task.subTaskCount}</span>}
         >
           <Table
             dataSource={subTasks}
@@ -203,11 +221,11 @@ export default function TaskDetail({ mode = 'admin' }) {
         <h1 className={styles.title}>{task.name}</h1>
         <Tag color={BIZ_TASK_STATUS_COLOR[task.bizStatus]}>{task.bizStatus}</Tag>
       </div>
-      <p className={styles.progressText}>确认进度：已确认 {task.confirmedCount}/{task.subTaskCount}</p>
+      <p className={styles.progressText}>确认进度：已确认 {task.confirmedCount}/{task.totalCouponCount}</p>
 
       <Card size="small" title="券清单">
         <Table
-          dataSource={subTasks}
+          dataSource={getCouponItemsForTask(taskId)}
           columns={bizColumns}
           rowKey="id"
           size="middle"

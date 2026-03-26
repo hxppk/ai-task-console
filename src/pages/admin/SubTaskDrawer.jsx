@@ -1,4 +1,4 @@
-import { Drawer, Descriptions, Timeline, Tag, Button, Space, Alert } from 'antd'
+import { Drawer, Descriptions, Timeline, Tag, Button, Space, Alert, Table } from 'antd'
 import {
   CheckCircleOutlined,
   SyncOutlined,
@@ -22,6 +22,85 @@ const stepColorMap = {
   failed: 'red',
 }
 
+const itemStatusColorMap = {
+  '已完成': 'success',
+  '创建中': 'processing',
+  '排队中': 'default',
+  '失败': 'error',
+}
+
+function renderExtBySkillType(subTask) {
+  const { skillType, ext, items } = subTask
+
+  switch (skillType) {
+    case '建活动':
+      return (
+        <Descriptions column={2} size="small">
+          <Descriptions.Item label="活动类型">{ext?.activityType || '—'}</Descriptions.Item>
+          <Descriptions.Item label="预算">{ext?.budget || '—'}</Descriptions.Item>
+          <Descriptions.Item label="开始时间">{ext?.startTime || '—'}</Descriptions.Item>
+          <Descriptions.Item label="结束时间">{ext?.endTime || '—'}</Descriptions.Item>
+        </Descriptions>
+      )
+
+    case '创建人群':
+      return (
+        <Descriptions column={2} size="small">
+          <Descriptions.Item label="人群规模">{ext?.crowdSize || '—'}</Descriptions.Item>
+          <Descriptions.Item label="人群ID">{ext?.crowdId || '—'}</Descriptions.Item>
+          <Descriptions.Item label="标签" span={2}>{ext?.tags || '—'}</Descriptions.Item>
+        </Descriptions>
+      )
+
+    case '建活动落地页':
+      return (
+        <Descriptions column={1} size="small">
+          <Descriptions.Item label="模板名称">{ext?.templateName || '—'}</Descriptions.Item>
+          <Descriptions.Item label="页面链接">
+            {ext?.pageUrl ? <a href={ext.pageUrl} target="_blank" rel="noreferrer">{ext.pageUrl}</a> : '—'}
+          </Descriptions.Item>
+        </Descriptions>
+      )
+
+    case '建券':
+      if (!items || items.length === 0) {
+        return <div style={{ color: '#86909c', fontSize: 13 }}>暂无券数据</div>
+      }
+      return (
+        <Table
+          dataSource={items}
+          rowKey="id"
+          size="small"
+          pagination={false}
+          columns={[
+            { title: '券名称', dataIndex: 'name', key: 'name', ellipsis: true },
+            {
+              title: '类型',
+              key: 'type',
+              width: 60,
+              render: (_, r) => r.ext?.type,
+            },
+            {
+              title: '面额',
+              key: 'amount',
+              width: 60,
+              render: (_, r) => r.ext?.amount,
+            },
+            {
+              title: '状态',
+              key: 'status',
+              width: 80,
+              render: (_, r) => <Tag color={itemStatusColorMap[r.status]}>{r.status}</Tag>,
+            },
+          ]}
+        />
+      )
+
+    default:
+      return null
+  }
+}
+
 export default function SubTaskDrawer({ subTask, onClose }) {
   if (!subTask) return null
 
@@ -35,7 +114,7 @@ export default function SubTaskDrawer({ subTask, onClose }) {
       }
       open={!!subTask}
       onClose={onClose}
-      width={400}
+      width={480}
     >
       <div className={styles.section}>
         <div className={styles.sectionTitle}>通用信息</div>
@@ -71,7 +150,7 @@ export default function SubTaskDrawer({ subTask, onClose }) {
               重试
             </Button>
           )}
-          {subTask.status === ADMIN_COUPON_STATUS.COMPLETED && subTask.ext?.draftId && (
+          {subTask.status === ADMIN_COUPON_STATUS.COMPLETED && subTask.skillType === '建券' && subTask.items?.length > 0 && (
             <Button type="primary" block>
               去确认草稿
             </Button>
@@ -81,19 +160,7 @@ export default function SubTaskDrawer({ subTask, onClose }) {
 
       <div className={styles.section}>
         <div className={styles.sectionTitle}>扩展信息（{subTask.skillType}）</div>
-        <Descriptions column={2} size="small">
-          <Descriptions.Item label="券类型">{subTask.ext?.type}</Descriptions.Item>
-          <Descriptions.Item label="面额">{subTask.ext?.amount}</Descriptions.Item>
-          <Descriptions.Item label="适用范围">{subTask.ext?.scope}</Descriptions.Item>
-          <Descriptions.Item label="库存">{subTask.ext?.stock?.toLocaleString()}</Descriptions.Item>
-          <Descriptions.Item label="有效期" span={2}>{subTask.ext?.validRange}</Descriptions.Item>
-        </Descriptions>
-        {subTask.ext?.draftId && (
-          <div style={{ marginTop: 12 }}>
-            <span className={styles.subsectionTitle}>草稿链接：</span>
-            <a>{subTask.ext.draftId}</a>
-          </div>
-        )}
+        {renderExtBySkillType(subTask)}
       </div>
     </Drawer>
   )

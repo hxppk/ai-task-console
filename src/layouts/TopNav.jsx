@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import styles from './TopNav.module.css'
 
-const navItems = [
+const defaultNavItems = [
   { key: 'label', label: '标签智库', path: null },
   { key: 'event', label: '事件管理', path: null },
   { key: 'product', label: '产品实验', path: null },
@@ -12,15 +12,17 @@ const navItems = [
   { key: 'ai-biz', label: 'AI 建券', path: '/biz' },
 ]
 
-export default function TopNav({ activeKey }) {
+const defaultBrand = { icon: 'Q', text: '策略实验室', color: '#52c41a' }
+
+export default function TopNav({ activeKey, navItems = defaultNavItems, brand = defaultBrand }) {
   const navigate = useNavigate()
 
   return (
     <header className={styles.topNav}>
       <div className={styles.left}>
         <div className={styles.logo}>
-          <span className={styles.logoIcon}>Q</span>
-          <span className={styles.logoText}>策略实验室</span>
+          <span className={styles.logoIcon} style={{ background: brand.color }}>{brand.icon}</span>
+          <span className={styles.logoText}>{brand.text}</span>
         </div>
         <nav className={styles.menu}>
           {navItems.map((item) => (

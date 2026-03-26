@@ -9,6 +9,17 @@
   margin-bottom: 12px;
 }
 
+.subsection {
+  margin-bottom: 16px;
+}
+
+.subsectionTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4e5969;
+  margin-bottom: 8px;
+}
+
 .timelineItem {
   display: flex;
   justify-content: space-between;

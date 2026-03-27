@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Upload, Button, Table, Statistic, Row, Col, message, Space } from 'antd'
+import { Card, Upload, Button, Table, Statistic, Row, Col, message, Space, Input, Form } from 'antd'
 import { FileExcelOutlined } from '@ant-design/icons'
 import styles from './ExcelUpload.module.css'
 
@@ -21,10 +21,12 @@ const parsedColumns = [
 
 export default function ExcelUpload() {
   const navigate = useNavigate()
+  const [taskName, setTaskName] = useState('')
   const [couponFile, setCouponFile] = useState(null)
   const [storeFile, setStoreFile] = useState(null)
 
   const bothUploaded = couponFile && storeFile
+  const canCreate = bothUploaded && taskName.trim()
 
   const uploadProps = (setter) => ({
     accept: '.xlsx,.xls,.csv',
@@ -44,7 +46,20 @@ export default function ExcelUpload() {
   return (
     <div className={styles.page}>
       <h1 className={styles.title}>上传 Excel 建券</h1>
-      <p className={styles.subtitle}>上传建券字段和门店清单 Excel，系统将自动解析并创建建券任务</p>
+      <p className={styles.subtitle}>填写任务名称，上传建券字段和门店清单 Excel，系统将自动解析并创建建券任务</p>
+
+      <Card size="small" title="任务信息">
+        <Form layout="vertical">
+          <Form.Item label="任务名称" required style={{ marginBottom: 0 }}>
+            <Input
+              placeholder="请输入任务名称，如：咖啡品类拉新券"
+              value={taskName}
+              onChange={(e) => setTaskName(e.target.value)}
+              style={{ maxWidth: 400 }}
+            />
+          </Form.Item>
+        </Form>
+      </Card>
 
       <Row gutter={16}>
         <Col span={12}>
@@ -89,7 +104,7 @@ export default function ExcelUpload() {
       <div className={styles.footer}>
         <Space>
           <Button onClick={() => navigate('/biz/tasks')}>取消</Button>
-          <Button type="primary" disabled={!bothUploaded} onClick={handleCreate}>
+          <Button type="primary" disabled={!canCreate} onClick={handleCreate}>
             开始创建任务
           </Button>
         </Space>

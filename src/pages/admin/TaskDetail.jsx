@@ -176,6 +176,7 @@ export default function TaskDetail({ mode = 'admin' }) {
           <Steps
             current={stepInfo.current}
             status={stepInfo.status}
+            size="small"
             items={TASK_PROGRESS_STEPS.map((title) => ({ title }))}
           />
         </Card>

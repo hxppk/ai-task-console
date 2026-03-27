@@ -6,7 +6,6 @@ import {
   tasks,
   getAdminStats,
   getBizStats,
-  getCouponItemsForTask,
   ADMIN_TASK_STATUS,
   ADMIN_TASK_STATUS_COLOR,
   BIZ_TASK_STATUS,
@@ -247,10 +246,7 @@ export default function TaskList({ mode = 'admin' }) {
 
       <Card size="small">
         <Table
-          dataSource={isAdmin ? filtered : filtered.filter((t) => {
-            const items = getCouponItemsForTask(t.id)
-            return items.some(item => item.ext?.bizStatus && item.ext.bizStatus !== '创建中')
-          })}
+          dataSource={filtered}
           columns={isAdmin ? adminColumns : bizColumns}
           rowKey="id"
           size="middle"

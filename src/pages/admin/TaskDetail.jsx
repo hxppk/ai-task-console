@@ -173,12 +173,14 @@ export default function TaskDetail({ mode = 'admin' }) {
         </Card>
 
         <Card size="small" title="任务进度">
-          <Steps
-            current={stepInfo.current}
-            status={stepInfo.status}
-            size="small"
-            items={TASK_PROGRESS_STEPS.map((title) => ({ title }))}
-          />
+          <div style={{ maxWidth: 600 }}>
+            <Steps
+              current={stepInfo.current}
+              status={stepInfo.status}
+              size="small"
+              items={TASK_PROGRESS_STEPS.map((title) => ({ title }))}
+            />
+          </div>
         </Card>
 
         <Card

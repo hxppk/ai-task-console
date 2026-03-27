@@ -6,6 +6,7 @@ import {
   tasks,
   getAdminStats,
   getBizStats,
+  getCouponItemsForTask,
   ADMIN_TASK_STATUS,
   ADMIN_TASK_STATUS_COLOR,
   BIZ_TASK_STATUS,
@@ -108,7 +109,7 @@ export default function TaskList({ mode = 'admin' }) {
       width: 140,
       render: (_, record) => record.oaNumber ? <a>{record.oaNumber}</a> : '—',
     },
-    { title: '活动名称', dataIndex: 'name', key: 'name', ellipsis: true },
+    { title: '任务名称', dataIndex: 'name', key: 'name', ellipsis: true },
     { title: '券数量', key: 'couponCount', width: 80, render: (_, r) => r.totalCouponCount },
     {
       title: '确认进度',
@@ -246,7 +247,10 @@ export default function TaskList({ mode = 'admin' }) {
 
       <Card size="small">
         <Table
-          dataSource={filtered}
+          dataSource={isAdmin ? filtered : filtered.filter((t) => {
+            const items = getCouponItemsForTask(t.id)
+            return items.some(item => item.ext?.bizStatus && item.ext.bizStatus !== '创建中')
+          })}
           columns={isAdmin ? adminColumns : bizColumns}
           rowKey="id"
           size="middle"

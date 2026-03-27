@@ -1,4 +1,4 @@
-import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { Menu } from 'antd'
 import { UnorderedListOutlined } from '@ant-design/icons'
 import TopNav from './TopNav'
@@ -10,9 +10,7 @@ const sideMenuItems = [
 
 export default function AdminLayout() {
   const navigate = useNavigate()
-  const location = useLocation()
-
-  const selectedKey = location.pathname.startsWith('/admin/tasks') || location.pathname === '/admin' ? '/admin/tasks' : '/admin/tasks'
+  const selectedKey = '/admin/tasks'
 
   return (
     <div className={styles.layout}>

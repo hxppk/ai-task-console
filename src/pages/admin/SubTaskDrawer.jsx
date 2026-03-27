@@ -23,10 +23,10 @@ const stepColorMap = {
 }
 
 const itemStatusColorMap = {
-  '已完成': 'success',
-  '创建中': 'processing',
-  '排队中': 'default',
-  '失败': 'error',
+  [ADMIN_COUPON_STATUS.COMPLETED]: 'success',
+  [ADMIN_COUPON_STATUS.CREATING]: 'processing',
+  [ADMIN_COUPON_STATUS.QUEUED]: 'default',
+  [ADMIN_COUPON_STATUS.FAILED]: 'error',
 }
 
 function renderExtBySkillType(subTask) {

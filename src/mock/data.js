@@ -1143,8 +1143,19 @@ export function getTask(taskId) {
 // Helper: get coupon items for a task (from the 建券 subtask)
 export function getCouponItemsForTask(taskId) {
   const subTasks = getSubTasksForTask(taskId)
-  const couponSubTask = subTasks.find(s => s.skillType === '建券')
-  return couponSubTask ? couponSubTask.items : []
+  const couponSubTasks = subTasks.filter(s => s.skillType === '建券')
+
+  if (couponSubTasks.length === 1 && couponSubTasks[0].items.length > 0) {
+    // Activity task: single 建券 subtask with batch items
+    return couponSubTasks[0].items
+  }
+  // Pure-coupon task: each subtask IS a coupon
+  return couponSubTasks.map(s => ({
+    id: s.id,
+    name: s.name,
+    status: s.status,
+    ext: s.ext,
+  }))
 }
 
 // Stats for admin dashboard

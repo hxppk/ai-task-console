@@ -61,7 +61,7 @@ export default function TaskList({ mode = 'admin' }) {
       render: (_, record) => (
         <Space>
           <Progress
-            percent={Math.round((record.completedCount / record.subTaskCount) * 100)}
+            percent={record.subTaskCount ? Math.round((record.completedCount / record.subTaskCount) * 100) : 0}
             size="small"
             style={{ width: 80 }}
             showInfo={false}

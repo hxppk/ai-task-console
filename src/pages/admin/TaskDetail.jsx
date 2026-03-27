@@ -128,7 +128,7 @@ export default function TaskDetail({ mode = 'admin' }) {
       key: 'action',
       width: 100,
       render: (_, record) => (
-        record.ext?.bizStatus === '待确认' ? (
+        record.ext?.bizStatus === BIZ_COUPON_STATUS.PENDING_CONFIRM ? (
           <Button type="link" size="small">
             去确认
           </Button>

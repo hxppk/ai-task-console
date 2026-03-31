@@ -126,14 +126,22 @@ export default function TaskDetail({ mode = 'admin' }) {
     {
       title: '操作',
       key: 'action',
-      width: 100,
-      render: (_, record) => (
-        record.ext?.bizStatus === BIZ_COUPON_STATUS.PENDING_CONFIRM ? (
-          <Button type="link" size="small">
-            去确认
-          </Button>
-        ) : null
-      ),
+      width: 140,
+      render: (_, record) => {
+        const bizStatus = record.ext?.bizStatus
+        if (bizStatus === BIZ_COUPON_STATUS.CONFIRMED) {
+          return (
+            <Space>
+              <Button type="link" size="small">查看</Button>
+              <Button type="link" size="small">编辑</Button>
+            </Space>
+          )
+        }
+        if (bizStatus === BIZ_COUPON_STATUS.PENDING_CONFIRM) {
+          return <Button type="link" size="small">去确认</Button>
+        }
+        return null
+      },
     },
   ]
 
@@ -186,7 +194,7 @@ export default function TaskDetail({ mode = 'admin' }) {
         <Card
           size="small"
           title="子任务清单"
-          extra={<span style={{ color: '#86909c', fontSize: 13 }}>共 {subTasks.length} 个 Skill，已完成 {task.completedCount}/{task.subTaskCount}</span>}
+          extra={<span style={{ color: '#86909c', fontSize: 13 }}>共 {subTasks.length} 个子任务，已完成 {task.completedCount}/{task.subTaskCount}</span>}
         >
           <Table
             dataSource={subTasks}

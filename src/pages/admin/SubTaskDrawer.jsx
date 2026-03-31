@@ -33,7 +33,7 @@ function renderExtBySkillType(subTask) {
   const { skillType, ext, items } = subTask
 
   switch (skillType) {
-    case '建活动':
+    case '建玩法':
       return (
         <Descriptions column={2} size="small">
           <Descriptions.Item label="活动类型">{ext?.activityType || '—'}</Descriptions.Item>
@@ -63,53 +63,62 @@ function renderExtBySkillType(subTask) {
       )
 
     case '建券': {
-      const isBatch = items && items.length > 0
-      if (isBatch) {
-        return (
-          <Table
-            dataSource={items}
-            rowKey="id"
-            size="small"
-            pagination={false}
-            columns={[
-              { title: '券名称', dataIndex: 'name', key: 'name', ellipsis: true },
-              {
-                title: '类型',
-                key: 'type',
-                width: 60,
-                render: (_, r) => r.ext?.type,
-              },
-              {
-                title: '面额',
-                key: 'amount',
-                width: 60,
-                render: (_, r) => r.ext?.amount,
-              },
-              {
-                title: '状态',
-                key: 'status',
-                width: 80,
-                render: (_, r) => <Tag color={itemStatusColorMap[r.status]}>{r.status}</Tag>,
-              },
-            ]}
-          />
-        )
-      }
-      // Single coupon mode — show coupon details from ext
+      const couponExt = items?.[0]?.ext || ext
       return (
         <Descriptions column={2} size="small">
           <Descriptions.Item label="券名称">{subTask.name || '—'}</Descriptions.Item>
-          <Descriptions.Item label="券类型">{ext?.type || '—'}</Descriptions.Item>
-          <Descriptions.Item label="面额">{ext?.amount || '—'}</Descriptions.Item>
-          <Descriptions.Item label="适用范围">{ext?.scope || '—'}</Descriptions.Item>
-          <Descriptions.Item label="有效期">{ext?.validRange || '—'}</Descriptions.Item>
-          <Descriptions.Item label="库存">{ext?.stock != null ? ext.stock : '—'}</Descriptions.Item>
-          {ext?.draftId && (
+          <Descriptions.Item label="券类型">{couponExt?.type || '—'}</Descriptions.Item>
+          <Descriptions.Item label="面额">{couponExt?.amount || '—'}</Descriptions.Item>
+          <Descriptions.Item label="适用范围">{couponExt?.scope || '—'}</Descriptions.Item>
+          <Descriptions.Item label="有效期">{couponExt?.validRange || '—'}</Descriptions.Item>
+          <Descriptions.Item label="库存">{couponExt?.stock != null ? couponExt.stock : '—'}</Descriptions.Item>
+          {couponExt?.draftId && (
             <Descriptions.Item label="草稿ID" span={2}>
-              <a>{ext.draftId}</a>
+              <a>{couponExt.draftId}</a>
             </Descriptions.Item>
           )}
         </Descriptions>
+      )
+    }
+
+    case 'AIGC内容': {
+      return (
+        <>
+          <Descriptions column={2} size="small" style={{ marginBottom: 16 }}>
+            <Descriptions.Item label="内容类型">{ext?.contentType || '—'}</Descriptions.Item>
+            <Descriptions.Item label="风格">{ext?.style || '—'}</Descriptions.Item>
+            <Descriptions.Item label="创意描述" span={2}>{ext?.prompt || '—'}</Descriptions.Item>
+          </Descriptions>
+          {items && items.length > 0 && (
+            <Table
+              dataSource={items}
+              rowKey="id"
+              size="small"
+              pagination={false}
+              columns={[
+                { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true },
+                {
+                  title: '类型',
+                  key: 'imageType',
+                  width: 80,
+                  render: (_, r) => r.ext?.imageType,
+                },
+                {
+                  title: '尺寸',
+                  key: 'resolution',
+                  width: 100,
+                  render: (_, r) => r.ext?.resolution,
+                },
+                {
+                  title: '状态',
+                  key: 'status',
+                  width: 80,
+                  render: (_, r) => <Tag color={itemStatusColorMap[r.status]}>{r.status}</Tag>,
+                },
+              ]}
+            />
+          )}
+        </>
       )
     }
 
@@ -167,12 +176,7 @@ export default function SubTaskDrawer({ subTask, onClose }) {
               重试
             </Button>
           )}
-          {subTask.status === ADMIN_COUPON_STATUS.COMPLETED && subTask.skillType === '建券' && subTask.items?.length > 0 && (
-            <Button type="primary" block>
-              去确认草稿
-            </Button>
-          )}
-          {subTask.status === ADMIN_COUPON_STATUS.COMPLETED && subTask.skillType === '建券' && (!subTask.items || subTask.items.length === 0) && subTask.ext?.draftId && (
+          {subTask.status === ADMIN_COUPON_STATUS.COMPLETED && subTask.skillType === '建券' && (subTask.items?.[0]?.ext?.draftId || subTask.ext?.draftId) && (
             <Button type="primary" block>
               去确认草稿
             </Button>
@@ -182,10 +186,10 @@ export default function SubTaskDrawer({ subTask, onClose }) {
 
       <div className={styles.section}>
         <div className={styles.sectionTitle}>
-          {subTask.skillType === '建券' && subTask.items?.length > 0
-            ? '券列表'
-            : subTask.skillType === '建券'
-              ? '券详情'
+          {subTask.skillType === '建券'
+            ? '券详情'
+            : subTask.skillType === 'AIGC内容'
+              ? 'AIGC 产出列表'
               : `扩展信息（${subTask.skillType}）`}
         </div>
         {renderExtBySkillType(subTask)}

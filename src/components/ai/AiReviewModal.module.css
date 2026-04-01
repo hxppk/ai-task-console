@@ -1,0 +1,47 @@
+.modalTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bubbleSection {
+  min-height: 120px;
+  max-height: 500px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar — antd design tokens */
+.bubbleSection::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bubbleSection::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bubbleSection::-webkit-scrollbar-thumb {
+  background: #d9d9d9; /* antd colorBorder */
+  border-radius: 3px;
+}
+
+.bubbleSection::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf; /* antd colorTextQuaternary */
+}
+
+/* Hide Bubble.List loading dots and connector lines */
+.bubbleSection :global(.ant-bubble-dot) {
+  display: none !important;
+}
+
+.bubbleSection :global(.ant-bubble-list-scroll-content)::before,
+.bubbleSection :global(.ant-bubble-list-scroll-content)::after {
+  display: none !important;
+}

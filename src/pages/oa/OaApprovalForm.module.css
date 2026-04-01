@@ -1,0 +1,220 @@
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 24px 40px;
+}
+
+/* Top action bar */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Form wrapper card */
+.formCard {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  margin-bottom: 16px;
+}
+
+.formTitle {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d2129;
+  padding: 20px 0 4px;
+}
+
+.formNumber {
+  text-align: right;
+  font-size: 13px;
+  color: #86909c;
+  padding: 0 24px 8px;
+}
+
+.warningNote {
+  text-align: center;
+  color: #ff4d4f;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.8;
+  padding: 8px 40px 16px;
+}
+
+/* OA-style table form layout */
+.oaTable {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #d9d9d9;
+  font-size: 14px;
+}
+
+.oaTable td,
+.oaTable th {
+  border: 1px solid #d9d9d9;
+  padding: 10px 14px;
+  vertical-align: middle;
+}
+
+.oaTable .labelCell {
+  background: #fafafa;
+  color: #4e5969;
+  font-weight: 500;
+  width: 130px;
+  min-width: 130px;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.oaTable .valueCell {
+  color: #1d2129;
+}
+
+.oaTable .required::after {
+  content: ' *';
+  color: #ff4d4f;
+}
+
+.oaTable /* Edit mode: make inputs fill table cells */
+.oaTable :global(.ant-input),
+.oaTable :global(.ant-select),
+.oaTable :global(.ant-picker),
+.oaTable :global(.ant-input-number),
+.oaTable :global(.ant-radio-group) {
+  width: 100%;
+}
+
+.oaTable :global(.ant-select) {
+  min-width: 160px;
+}
+
+/* Sub-table inside cells (渠道, 活动范围) */
+.innerTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.innerTable th,
+.innerTable td {
+  border: 1px solid #d9d9d9;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.innerTable th {
+  background: #e8e8e8;
+  color: #4e5969;
+  font-weight: 500;
+}
+
+/* Activity content long text */
+.activityContent {
+  white-space: pre-wrap;
+  line-height: 1.8;
+  font-size: 13px;
+}
+
+/* Section headers inside the form */
+.sectionHeader {
+  background: #fafafa;
+  font-weight: 600;
+  color: #1d2129;
+  text-align: left !important;
+  font-size: 14px;
+}
+
+/* Approval section */
+.approvalCard {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+}
+
+/* Bottom tabs */
+.bottomTabs {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+}
+
+.bottomTabsInner {
+  padding: 0 16px 16px;
+}
+
+/* File link */
+.fileLink {
+  color: #1677ff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fileInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fileSize {
+  color: #86909c;
+  font-size: 13px;
+}
+
+/* Signer table */
+.signerTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.signerTable th,
+.signerTable td {
+  border: 1px solid #d9d9d9;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.signerTable th {
+  background: #fafafa;
+  font-weight: 500;
+  color: #4e5969;
+}
+
+/* Checkbox/radio row for platforms */
+.platformRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Toggle row for 允许传阅 */
+.subjectRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.subjectLabel {
+  color: #4e5969;
+  font-size: 14px;
+}
+
+.subjectValue {
+  color: #1d2129;
+}
+
+/* Section title like 审批内容 */
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1677ff;
+  padding: 16px 24px 8px;
+}

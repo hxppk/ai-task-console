@@ -8,6 +8,7 @@ const defaultNavItems = [
   { key: 'marketing', label: '营销策略', path: null },
   { key: 'message', label: '消息中心', path: null },
   { key: 'cost', label: '成本中心', path: null },
+  { key: 'oa', label: 'OA流程审核', path: '/oa/approval/new' },
   { key: 'ai-admin', label: 'AI 任务后台', path: '/admin' },
   { key: 'ai-biz', label: 'AI 建券', path: '/biz' },
 ]

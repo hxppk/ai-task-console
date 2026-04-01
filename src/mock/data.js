@@ -1386,3 +1386,93 @@ export const AI_PARSE_MESSAGES = [
   { delay: 4500, content: '券 3：新客立减5元（立减券，新客专享）' },
   { delay: 5500, content: '解析完成！共 3 张券配置已提交至 AI 任务后台，可在任务列表中查看创建进度。' },
 ]
+
+// ============================================================
+// OA 活动立项 — mock data
+// ============================================================
+
+export const OA_FIELD_OPTIONS = {
+  activityProducts: ['奶茶', '咖啡', '奶茶+咖啡'],
+  businessChannels: ['到家', '到店', '平台'],
+  channelLevel1: ['小程序', '社群', '抖音快手', '团购支付', 'POS'],
+  channelLevel2: ['总部-到店', '总部-到家', '区域'],
+  types: ['新增', '变更'],
+  storeEffort: ['≥75%', '75%>X≥70%', '<70%'],
+}
+
+export const OA_FORM_MOCK = {
+  id: 'PTHDN20240900070',
+  title: '茶百道到店渠道活动审核',
+  applicant: '何旭',
+  department: '增长产品部',
+  position: '产品经理',
+  applyDate: '2024-09-20',
+  activityTopic: '智能营销推荐系统–算法模型自动化发券',
+  platforms: ['小程序', '社群', '抖音快手'],
+  activityDateStart: '2024-10-01',
+  activityDateEnd: '2024-12-31',
+  type: '新增',
+  channelLevel1: '总部-到店',
+  channelLevel2: '全国',
+  storeArea: '7000',
+  externalIp: false,
+  companySettlement: false,
+  annualBudget: false,
+  totalAmount: 700000,
+  costBreakdown: { material: 0, creative: 0, advertising: 0, otherMarketing: 700000 },
+  tradeEstimate: {
+    redemptionRate100: '100%',
+    estimatedGMV: 576000000,
+    financialROI: 91.63,
+    redemptionRate15: '1.5%',
+    estimatedGMV15: 8640000,
+    financialROI15: 1.37,
+  },
+  adEstimate: { impressions: 0, cpmPrice: '' },
+  couponType: '小程序–券码',
+  couponTemplate: '【模板】茶百道赠饮优惠券申请表.xlsx',
+  couponRules: '【智能营销券池】茶百道赠饮优惠券申请表.xlsx',
+  storeEffort: '≥75%',
+  storeCount: 7000,
+  activityContent: `活动目的：茶百道智能营销算法模型建设已经在前期实验中验证成果，从10月开始将会陆续行化，对用户进行个性化发放优惠券，最大化 GMV 收益。
+活动主题：智能营销销推荐系统–算法模型自动化发券
+活动内容：通过时化优惠模型对个性化自动化发券，向消息管理器推荐的适配商品，
+发券方案：直接发放优至上层第五天，前置提醒，智能发放预算，模型进行预算的方式重复最大化带来 GMV 的优惠券，以适合的时间（每周七天是一天）对用户发券（有 5、7、7 天）对用户进行发券，自算法模型按区域用户属性项，发券的有效期限（3 天为主，有最5、7、7天）适合的有效期限
+活动饮品：根据券池管理中配置优惠券确定，以全球优体饮品通用券为主
+活动渠道：优饮小程序自发
+活动门店：全部门店
+活动折扣：综合折扣率大于 75 折
+费用承担：优惠券成本门店承担，短信成本由数字化中心承担
+活动期限：
+*仅小程序自动还款推荐图员，
+*此活动不与其它优惠同享：
+*小料、普督均不参与此活动；
+*优惠券当日领取即可使用，有效期根据实际发放优惠券决定；`,
+  attachments: [{ name: '智能营销推荐_...png', size: '241.91KB' }],
+  signers: [
+    { seq: 1, mode: '企业', name: '陈颜霞', entity: '四川爱信致远企业管理咨询有限公司', region: '甲方', contact: '', remark: '' },
+  ],
+  pendingFile: { name: '关于茶百道智能营销推荐系统算法模型自动化发券活动的通知.pdf', size: '760.01KB' },
+  signedFile: { name: '关于茶百道智能营销推荐系统算法模型自动化发券活动的通知.pdf', size: '895.83KB' },
+}
+
+export const OA_APPROVAL_HISTORY = [
+  { time: '2024-09-20 13:40', node: '起草节点', handler: '何旭', action: '提交文件', remark: '智能营销算法模型自动化发券，优惠券到手率高于 0.75，不涉及货补。模型会进行个性化短信触达，短信成本由数字化中心承担。' },
+  { time: '2024-09-20 17:56', node: '直属上级', handler: '王靖', action: '提交文件', remark: '按年度项目预算与计划 调整短信费用\n耗时: 4时14分' },
+  { time: '2024-09-20 18:34', node: '起草节点', handler: '何旭', action: '提交文件', remark: '按年度预算调整，预估短信费用70万，预估GMV5.76亿' },
+  { time: '2024-09-23 10:27', node: '直属上级', handler: '王靖', action: '提交文件', remark: '此变更为Q4算法模型自动化营销活动立项，按年度算法预算目前剩余约70万进行申请（短信额度主要用于进一步的短信poi调优模型训练与效果推广全量使用）\n耗时: 2天15时51分25秒' },
+]
+
+export const AI_REVIEW_MESSAGES = [
+  { delay: 600,  content: '正在启动 AI 审核 Agent...' },
+  { delay: 1800, content: '开始审核表单内容，共需检查 8 个审核维度。' },
+  { delay: 3000, content: '[1/8] 检查基础信息完整性 ✅\n申请人、活动事项、业务渠道等必填字段已完整填写。' },
+  { delay: 4200, content: '[2/8] 验证活动日期合理性 ✅\n活动开始日期需提前7个工作日申请，符合要求。活动周期在合理范围内。' },
+  { delay: 5400, content: '[3/8] 校验预算与费用分摊 ✅\n涉及总金额 70万元，费用分摊项合计与总金额一致，在审批权限范围内。' },
+  { delay: 6600, content: '[4/8] 核查活动范围与门店覆盖 ✅\n活动覆盖 7000 家门店，与全国范围申请一致。' },
+  { delay: 7800, content: '[5/8] 评估交易效果预估 ⚠️\n预估核销率 1.5% 对应的财务 ROI 为 1.37，略低于建议阈值 1.5。建议关注实际核销数据并及时调优。' },
+  { delay: 9000, content: '[6/8] 校验优惠券规则配置 ✅\n优惠券类型为小程序券码，模板与规则文件已上传，配置完整。' },
+  { delay: 10200, content: '[7/8] 门店活动力度合规检查 ✅\n门店活动力度 ≥75%，符合公司折扣下限要求。' },
+  { delay: 11400, content: '[8/8] 合规性与附件检查 ✅\n不涉及外部 IP 合作，不涉及公司结算。通知模板与签署文件已上传。' },
+  { delay: 13000, content: '━━━━━━━━━━━━━━━━━━━━\n\n📋 审核结果：通过 ✅\n\n共 8 项检查：7 项通过、1 项提示（非阻断）。\n\n⚠️ 提示项：预估财务 ROI 在低核销率场景下偏低，建议提交后持续关注算法模型优化效果。\n\n您可以点击「确认提交」完成流程发起。' },
+]

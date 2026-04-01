@@ -16,7 +16,6 @@ function App() {
       <Route path="/biz" element={<BizLayout />}>
         <Route index element={<TaskList mode="biz" />} />
         <Route path="tasks" element={<TaskList mode="biz" />} />
-        <Route path="tasks/:taskId" element={<TaskDetail mode="biz" />} />
         <Route path="upload" element={<ExcelUpload />} />
       </Route>
       <Route path="*" element={<Navigate to="/admin" replace />} />

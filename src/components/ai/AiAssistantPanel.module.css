@@ -1,0 +1,53 @@
+.modalTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bubbleSection {
+  min-height: 80px;
+  max-height: 360px;
+  overflow: hidden;
+}
+
+/* Hide Bubble.List loading dots and connector lines */
+.bubbleSection :global(.ant-bubble-dot) {
+  display: none !important;
+}
+
+.bubbleSection :global(.ant-bubble-list-scroll-content)::before,
+.bubbleSection :global(.ant-bubble-list-scroll-content)::after {
+  display: none !important;
+}
+
+.uploadSection {
+  padding: 1px 4px;
+}
+
+.draggerWrapper {
+  display: block;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.dragger {
+  border-color: #d9d9d9 !important;
+  border-radius: 8px !important;
+  background: #fafafa !important;
+  overflow: hidden !important;
+}
+
+.dragger:hover {
+  border-color: #1677ff !important;
+}
+
+.dragger :global(.ant-upload-drag-container) {
+  padding: 48px 0 !important;
+}

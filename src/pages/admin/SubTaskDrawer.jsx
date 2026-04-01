@@ -5,7 +5,7 @@ import {
   CloseCircleOutlined,
   MinusCircleOutlined,
 } from '@ant-design/icons'
-import { ADMIN_COUPON_STATUS, ADMIN_COUPON_STATUS_COLOR } from '../../mock/data'
+import { ADMIN_COUPON_STATUS, ADMIN_COUPON_STATUS_COLOR, BIZ_COUPON_EXEC_STEPS } from '../../mock/data'
 import styles from './SubTaskDrawer.module.css'
 
 const stepIconMap = {
@@ -148,7 +148,7 @@ export default function SubTaskDrawer({ subTask, onClose }) {
         <div className={styles.subsection}>
           <div className={styles.subsectionTitle}>执行链路</div>
           <Timeline
-            items={subTask.execSteps.map((step) => ({
+            items={subTask.execSteps.filter((step) => !BIZ_COUPON_EXEC_STEPS.includes(step.step)).map((step) => ({
               dot: stepIconMap[step.status],
               color: stepColorMap[step.status],
               children: (

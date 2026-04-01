@@ -1,20 +1,18 @@
-// Task statuses for admin backend
+// Task statuses for admin backend (lifecycle ends at draft_ready)
 export const ADMIN_TASK_STATUS = {
-  QUEUED: '待创建',
-  PARSING: '解析中',
-  CREATING: '创建中',
-  PENDING_CONFIRM: '待确认',
-  COMPLETED: '已完成',
+  PENDING: '待创建',
+  PROCESSING: '创建中',
+  DRAFT_READY: '草稿已就绪',
   PARTIAL_ERROR: '部分异常',
   ERROR: '创建异常',
 }
 
-// Task statuses for business list (simplified)
+// Task statuses for business list (biz lifecycle)
 export const BIZ_TASK_STATUS = {
-  QUEUED: '待创建',
-  CREATING: '创建中',
+  PROCESSING: '处理中',
   PENDING_CONFIRM: '待确认',
-  COMPLETED: '已完成',
+  CONFIRMED: '已确认',
+  DISCARDED: '已废弃',
 }
 
 // Coupon statuses for admin backend
@@ -25,21 +23,20 @@ export const ADMIN_COUPON_STATUS = {
   FAILED: '失败',
 }
 
-// Coupon statuses for business list (simplified)
+// Coupon statuses for business list
 export const BIZ_COUPON_STATUS = {
-  CREATING: '创建中',
+  PROCESSING: '处理中',
   PENDING_CONFIRM: '待确认',
   CONFIRMED: '已确认',
+  DISCARDED: '已废弃',
 }
 
 // Status tag colors (antd Tag color prop)
 export const ADMIN_TASK_STATUS_COLOR = {
-  [ADMIN_TASK_STATUS.QUEUED]: 'default',
-  [ADMIN_TASK_STATUS.PARSING]: 'processing',
-  [ADMIN_TASK_STATUS.CREATING]: 'processing',
-  [ADMIN_TASK_STATUS.PENDING_CONFIRM]: 'warning',
-  [ADMIN_TASK_STATUS.COMPLETED]: 'success',
-  [ADMIN_TASK_STATUS.PARTIAL_ERROR]: 'error',
+  [ADMIN_TASK_STATUS.PENDING]: 'default',
+  [ADMIN_TASK_STATUS.PROCESSING]: 'processing',
+  [ADMIN_TASK_STATUS.DRAFT_READY]: 'success',
+  [ADMIN_TASK_STATUS.PARTIAL_ERROR]: 'warning',
   [ADMIN_TASK_STATUS.ERROR]: 'error',
 }
 
@@ -51,31 +48,36 @@ export const ADMIN_COUPON_STATUS_COLOR = {
 }
 
 export const BIZ_TASK_STATUS_COLOR = {
-  [BIZ_TASK_STATUS.QUEUED]: 'default',
-  [BIZ_TASK_STATUS.CREATING]: 'processing',
+  [BIZ_TASK_STATUS.PROCESSING]: 'processing',
   [BIZ_TASK_STATUS.PENDING_CONFIRM]: 'warning',
-  [BIZ_TASK_STATUS.COMPLETED]: 'success',
+  [BIZ_TASK_STATUS.CONFIRMED]: 'success',
+  [BIZ_TASK_STATUS.DISCARDED]: 'default',
 }
 
 export const BIZ_COUPON_STATUS_COLOR = {
-  [BIZ_COUPON_STATUS.CREATING]: 'processing',
+  [BIZ_COUPON_STATUS.PROCESSING]: 'processing',
   [BIZ_COUPON_STATUS.PENDING_CONFIRM]: 'warning',
   [BIZ_COUPON_STATUS.CONFIRMED]: 'success',
+  [BIZ_COUPON_STATUS.DISCARDED]: 'default',
 }
 
-// Coupon execution steps (for admin coupon detail drawer timeline)
-export const COUPON_EXEC_STEPS = [
+// Coupon execution steps (admin view — ends at 生成草稿)
+export const ADMIN_COUPON_EXEC_STEPS = [
   '解析参数',
   '填写表单',
   '校验',
   '生成草稿',
+]
+
+// Biz-side execution steps (after admin delivers draft)
+export const BIZ_COUPON_EXEC_STEPS = [
   '等待业务确认',
   '确认后提交',
   '结果回传',
 ]
 
 // Task progress steps (for admin task detail stepper)
-export const TASK_PROGRESS_STEPS = ['待创建', '解析', '创建', '待确认', '已完成']
+export const TASK_PROGRESS_STEPS = ['待创建', '创建中', '草稿已就绪']
 
 // Mock subtask data keyed by task ID
 // Each task has subtasks (one per Skill): 建玩法, AIGC内容, 创建人群, 建活动落地页, 建券(每张券独立SubTask)
@@ -331,7 +333,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-006', name: '门店新客立减3元', status: '创建中', ext: { type: '立减', amount: '3元', scope: '门店新客', validRange: '2026-03-08 ~ 03-10', stock: 8000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-006', name: '门店新客立减3元', status: '创建中', ext: { type: '立减', amount: '3元', scope: '门店新客', validRange: '2026-03-08 ~ 03-10', stock: 8000, draftId: null, bizStatus: '处理中' } },
       ],
     },
     {
@@ -354,7 +356,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-007', name: '门店满50减12券', status: '排队中', ext: { type: '满减', amount: '12元', scope: '门店专享', validRange: '2026-03-08 ~ 03-10', stock: 2000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-007', name: '门店满50减12券', status: '排队中', ext: { type: '满减', amount: '12元', scope: '门店专享', validRange: '2026-03-08 ~ 03-10', stock: 2000, draftId: null, bizStatus: '处理中' } },
       ],
     },
     {
@@ -377,7 +379,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-008', name: '门店7折限时券', status: '排队中', ext: { type: '折扣', amount: '7折', scope: '门店限时', validRange: '2026-03-08 ~ 03-10', stock: 4000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-008', name: '门店7折限时券', status: '排队中', ext: { type: '折扣', amount: '7折', scope: '门店限时', validRange: '2026-03-08 ~ 03-10', stock: 4000, draftId: null, bizStatus: '处理中' } },
       ],
     },
   ],
@@ -514,7 +516,7 @@ const subTasksByTask = {
       errors: ['校验失败：有效期起始日期不能早于当前日期'],
       ext: {},
       items: [
-        { id: 'ITEM-011', name: '会员日满100减30', status: '失败', ext: { type: '满减', amount: '30元', scope: '全品类', validRange: '2026-03-15 ~ 03-15', stock: 6000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-011', name: '会员日满100减30', status: '失败', ext: { type: '满减', amount: '30元', scope: '全品类', validRange: '2026-03-15 ~ 03-15', stock: 6000, draftId: null, bizStatus: '处理中' } },
       ],
     },
     {
@@ -560,7 +562,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-013', name: '会员日新客立减15', status: '创建中', ext: { type: '立减', amount: '15元', scope: '新客专享', validRange: '2026-03-15 ~ 03-15', stock: 3000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-013', name: '会员日新客立减15', status: '创建中', ext: { type: '立减', amount: '15元', scope: '新客专享', validRange: '2026-03-15 ~ 03-15', stock: 3000, draftId: null, bizStatus: '处理中' } },
       ],
     },
     {
@@ -583,7 +585,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-014', name: '会员日满200减50', status: '排队中', ext: { type: '满减', amount: '50元', scope: '全品类', validRange: '2026-03-15 ~ 03-15', stock: 2000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-014', name: '会员日满200减50', status: '排队中', ext: { type: '满减', amount: '50元', scope: '全品类', validRange: '2026-03-15 ~ 03-15', stock: 2000, draftId: null, bizStatus: '处理中' } },
       ],
     },
   ],
@@ -608,7 +610,7 @@ const subTasksByTask = {
       errors: ['校验失败：咖啡品类ID无效，请检查品类配置'],
       ext: {},
       items: [
-        { id: 'ITEM-015', name: '咖啡品类拉新5元券', status: '失败', ext: { type: '立减', amount: '5元', scope: '咖啡品类', validRange: '2026-03-20 ~ 04-20', stock: 10000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-015', name: '咖啡品类拉新5元券', status: '失败', ext: { type: '立减', amount: '5元', scope: '咖啡品类', validRange: '2026-03-20 ~ 04-20', stock: 10000, draftId: null, bizStatus: '处理中' } },
       ],
     },
   ],
@@ -702,7 +704,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-016', name: '端午节满20减3券', status: '排队中', ext: { type: '满减', amount: '3元', scope: '全品类', validRange: '2026-05-28 ~ 06-03', stock: 10000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-016', name: '端午节满20减3券', status: '排队中', ext: { type: '满减', amount: '3元', scope: '全品类', validRange: '2026-05-28 ~ 06-03', stock: 10000, draftId: null, bizStatus: '处理中' } },
       ],
     },
   ],
@@ -729,7 +731,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-017', name: '新用户立减5元券', status: '创建中', ext: { type: '立减', amount: '5元', scope: '新客专享', validRange: '2026-03-20 ~ 04-20', stock: 5000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-017', name: '新用户立减5元券', status: '创建中', ext: { type: '立减', amount: '5元', scope: '新客专享', validRange: '2026-03-20 ~ 04-20', stock: 5000, draftId: null, bizStatus: '处理中' } },
       ],
     },
   ],
@@ -761,7 +763,7 @@ const subTasksByTask = {
     },
   ],
 
-  // Scenario 4: OA 单张券 - 已完成
+  // Scenario 4: OA 单张券 - 已确认
   'TSK-20260320-010': [
     {
       id: 'SUB-028',
@@ -810,7 +812,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-020', name: '夏日冰饮满10减2券', status: '排队中', ext: { type: '满减', amount: '2元', scope: '冰饮品类', validRange: '2026-06-01 ~ 08-31', stock: 15000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-020', name: '夏日冰饮满10减2券', status: '排队中', ext: { type: '满减', amount: '2元', scope: '冰饮品类', validRange: '2026-06-01 ~ 08-31', stock: 15000, draftId: null, bizStatus: '处理中' } },
       ],
     },
     {
@@ -833,7 +835,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-021', name: '夏日冰饮8折券', status: '排队中', ext: { type: '折扣', amount: '8折', scope: '冰饮品类', validRange: '2026-06-01 ~ 08-31', stock: 10000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-021', name: '夏日冰饮8折券', status: '排队中', ext: { type: '折扣', amount: '8折', scope: '冰饮品类', validRange: '2026-06-01 ~ 08-31', stock: 10000, draftId: null, bizStatus: '处理中' } },
       ],
     },
     {
@@ -856,7 +858,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-022', name: '夏日新品立减3元券', status: '排队中', ext: { type: '立减', amount: '3元', scope: '夏日新品', validRange: '2026-06-01 ~ 08-31', stock: 8000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-022', name: '夏日新品立减3元券', status: '排队中', ext: { type: '立减', amount: '3元', scope: '夏日新品', validRange: '2026-06-01 ~ 08-31', stock: 8000, draftId: null, bizStatus: '处理中' } },
       ],
     },
   ],
@@ -906,7 +908,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-024', name: '早餐套餐9折券', status: '创建中', ext: { type: '折扣', amount: '9折', scope: '早餐套餐', validRange: '2026-04-01 ~ 04-30', stock: 20000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-024', name: '早餐套餐9折券', status: '创建中', ext: { type: '折扣', amount: '9折', scope: '早餐套餐', validRange: '2026-04-01 ~ 04-30', stock: 20000, draftId: null, bizStatus: '处理中' } },
       ],
     },
     {
@@ -929,7 +931,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-025', name: '早餐新客立减2元券', status: '排队中', ext: { type: '立减', amount: '2元', scope: '早餐新客', validRange: '2026-04-01 ~ 04-30', stock: 15000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-025', name: '早餐新客立减2元券', status: '排队中', ext: { type: '立减', amount: '2元', scope: '早餐新客', validRange: '2026-04-01 ~ 04-30', stock: 15000, draftId: null, bizStatus: '处理中' } },
       ],
     },
     {
@@ -952,7 +954,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-026', name: '早餐满15减3券', status: '排队中', ext: { type: '满减', amount: '3元', scope: '早餐时段', validRange: '2026-04-01 ~ 04-30', stock: 10000, draftId: null, bizStatus: '创建中' } },
+        { id: 'ITEM-026', name: '早餐满15减3券', status: '排队中', ext: { type: '满减', amount: '3元', scope: '早餐时段', validRange: '2026-04-01 ~ 04-30', stock: 10000, draftId: null, bizStatus: '处理中' } },
       ],
     },
   ],
@@ -1030,7 +1032,7 @@ const subTasksByTask = {
     },
   ],
 
-  // Scenario 8: OA 多张券 - 已完成 (3 coupons, all completed and confirmed)
+  // Scenario 8: OA 多张券 - 已废弃 (3 coupons, all discarded)
   'TSK-20260324-014': [
     {
       id: 'SUB-039',
@@ -1052,7 +1054,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-030', name: '开学季满30减5券', status: '已完成', ext: { type: '满减', amount: '5元', scope: '文具品类', validRange: '2026-02-20 ~ 03-20', stock: 12000, draftId: 'draft-20260324-001', bizStatus: '已确认' } },
+        { id: 'ITEM-030', name: '开学季满30减5券', status: '已完成', ext: { type: '满减', amount: '5元', scope: '文具品类', validRange: '2026-02-20 ~ 03-20', stock: 12000, draftId: 'draft-20260324-001', bizStatus: '已废弃' } },
       ],
     },
     {
@@ -1075,7 +1077,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-031', name: '开学季8.5折书包券', status: '已完成', ext: { type: '折扣', amount: '8.5折', scope: '书包品类', validRange: '2026-02-20 ~ 03-20', stock: 6000, draftId: 'draft-20260324-002', bizStatus: '已确认' } },
+        { id: 'ITEM-031', name: '开学季8.5折书包券', status: '已完成', ext: { type: '折扣', amount: '8.5折', scope: '书包品类', validRange: '2026-02-20 ~ 03-20', stock: 6000, draftId: 'draft-20260324-002', bizStatus: '已废弃' } },
       ],
     },
     {
@@ -1098,7 +1100,7 @@ const subTasksByTask = {
       errors: [],
       ext: {},
       items: [
-        { id: 'ITEM-032', name: '开学季立减3元文具券', status: '已完成', ext: { type: '立减', amount: '3元', scope: '文具品类', validRange: '2026-02-20 ~ 03-20', stock: 10000, draftId: 'draft-20260324-003', bizStatus: '已确认' } },
+        { id: 'ITEM-032', name: '开学季立减3元文具券', status: '已完成', ext: { type: '立减', amount: '3元', scope: '文具品类', validRange: '2026-02-20 ~ 03-20', stock: 10000, draftId: 'draft-20260324-003', bizStatus: '已废弃' } },
       ],
     },
   ],
@@ -1115,8 +1117,8 @@ export const tasks = [
     subTaskCount: 7,
     completedCount: 7,
     totalCouponCount: 3,
-    adminStatus: ADMIN_TASK_STATUS.COMPLETED,
-    bizStatus: BIZ_TASK_STATUS.COMPLETED,
+    adminStatus: ADMIN_TASK_STATUS.DRAFT_READY,
+    bizStatus: BIZ_TASK_STATUS.CONFIRMED,
     confirmedCount: 3,
     creator: '陈悦',
     createdAt: '2026-03-08 14:20',
@@ -1130,8 +1132,8 @@ export const tasks = [
     subTaskCount: 6,
     completedCount: 3,
     totalCouponCount: 5,
-    adminStatus: ADMIN_TASK_STATUS.CREATING,
-    bizStatus: BIZ_TASK_STATUS.CREATING,
+    adminStatus: ADMIN_TASK_STATUS.PROCESSING,
+    bizStatus: BIZ_TASK_STATUS.PROCESSING,
     confirmedCount: 1,
     creator: '张文佳',
     createdAt: '2026-03-08 14:25',
@@ -1145,7 +1147,7 @@ export const tasks = [
     subTaskCount: 5,
     completedCount: 5,
     totalCouponCount: 2,
-    adminStatus: ADMIN_TASK_STATUS.PENDING_CONFIRM,
+    adminStatus: ADMIN_TASK_STATUS.DRAFT_READY,
     bizStatus: BIZ_TASK_STATUS.PENDING_CONFIRM,
     confirmedCount: 0,
     creator: '林巧',
@@ -1161,7 +1163,7 @@ export const tasks = [
     completedCount: 1,
     totalCouponCount: 4,
     adminStatus: ADMIN_TASK_STATUS.PARTIAL_ERROR,
-    bizStatus: BIZ_TASK_STATUS.CREATING,
+    bizStatus: BIZ_TASK_STATUS.PROCESSING,
     confirmedCount: 0,
     creator: '骆颖',
     createdAt: '2026-03-12 16:30',
@@ -1176,7 +1178,7 @@ export const tasks = [
     completedCount: 0,
     totalCouponCount: 1,
     adminStatus: ADMIN_TASK_STATUS.ERROR,
-    bizStatus: BIZ_TASK_STATUS.CREATING,
+    bizStatus: BIZ_TASK_STATUS.PROCESSING,
     confirmedCount: 0,
     creator: '方鸣',
     createdAt: '2026-03-15 08:45',
@@ -1190,8 +1192,8 @@ export const tasks = [
     subTaskCount: 3,
     completedCount: 0,
     totalCouponCount: 0,
-    adminStatus: ADMIN_TASK_STATUS.QUEUED,
-    bizStatus: BIZ_TASK_STATUS.QUEUED,
+    adminStatus: ADMIN_TASK_STATUS.PENDING,
+    bizStatus: BIZ_TASK_STATUS.PROCESSING,
     confirmedCount: 0,
     creator: '李婷',
     createdAt: '2026-03-16 10:30',
@@ -1209,8 +1211,8 @@ export const tasks = [
     subTaskCount: 1,
     completedCount: 0,
     totalCouponCount: 1,
-    adminStatus: ADMIN_TASK_STATUS.QUEUED,
-    bizStatus: BIZ_TASK_STATUS.QUEUED,
+    adminStatus: ADMIN_TASK_STATUS.PENDING,
+    bizStatus: BIZ_TASK_STATUS.PROCESSING,
     confirmedCount: 0,
     creator: '赵明',
     createdAt: '2026-03-17 09:00',
@@ -1226,8 +1228,8 @@ export const tasks = [
     subTaskCount: 1,
     completedCount: 0,
     totalCouponCount: 1,
-    adminStatus: ADMIN_TASK_STATUS.CREATING,
-    bizStatus: BIZ_TASK_STATUS.CREATING,
+    adminStatus: ADMIN_TASK_STATUS.PROCESSING,
+    bizStatus: BIZ_TASK_STATUS.PROCESSING,
     confirmedCount: 0,
     creator: '吴芳',
     createdAt: '2026-03-18 10:30',
@@ -1243,14 +1245,14 @@ export const tasks = [
     subTaskCount: 1,
     completedCount: 1,
     totalCouponCount: 1,
-    adminStatus: ADMIN_TASK_STATUS.PENDING_CONFIRM,
+    adminStatus: ADMIN_TASK_STATUS.DRAFT_READY,
     bizStatus: BIZ_TASK_STATUS.PENDING_CONFIRM,
     confirmedCount: 0,
     creator: '孙磊',
     createdAt: '2026-03-19 11:15',
   },
 
-  // Scenario 4: OA 单张券 - 已完成
+  // Scenario 4: OA 单张券 - 已确认
   {
     id: 'TSK-20260320-010',
     name: '周末饮品折扣',
@@ -1260,8 +1262,8 @@ export const tasks = [
     subTaskCount: 1,
     completedCount: 1,
     totalCouponCount: 1,
-    adminStatus: ADMIN_TASK_STATUS.COMPLETED,
-    bizStatus: BIZ_TASK_STATUS.COMPLETED,
+    adminStatus: ADMIN_TASK_STATUS.DRAFT_READY,
+    bizStatus: BIZ_TASK_STATUS.CONFIRMED,
     confirmedCount: 1,
     creator: '周雪',
     createdAt: '2026-03-20 14:00',
@@ -1277,8 +1279,8 @@ export const tasks = [
     subTaskCount: 3,
     completedCount: 0,
     totalCouponCount: 3,
-    adminStatus: ADMIN_TASK_STATUS.QUEUED,
-    bizStatus: BIZ_TASK_STATUS.QUEUED,
+    adminStatus: ADMIN_TASK_STATUS.PENDING,
+    bizStatus: BIZ_TASK_STATUS.PROCESSING,
     confirmedCount: 0,
     creator: '黄志强',
     createdAt: '2026-03-21 09:30',
@@ -1294,8 +1296,8 @@ export const tasks = [
     subTaskCount: 4,
     completedCount: 1,
     totalCouponCount: 4,
-    adminStatus: ADMIN_TASK_STATUS.CREATING,
-    bizStatus: BIZ_TASK_STATUS.CREATING,
+    adminStatus: ADMIN_TASK_STATUS.PROCESSING,
+    bizStatus: BIZ_TASK_STATUS.PROCESSING,
     confirmedCount: 0,
     creator: '郑丽华',
     createdAt: '2026-03-22 08:45',
@@ -1311,14 +1313,14 @@ export const tasks = [
     subTaskCount: 3,
     completedCount: 3,
     totalCouponCount: 3,
-    adminStatus: ADMIN_TASK_STATUS.PENDING_CONFIRM,
+    adminStatus: ADMIN_TASK_STATUS.DRAFT_READY,
     bizStatus: BIZ_TASK_STATUS.PENDING_CONFIRM,
     confirmedCount: 0,
     creator: '王建国',
     createdAt: '2026-03-23 15:20',
   },
 
-  // Scenario 8: OA 多张券 - 已完成 (3 coupons, all completed and confirmed)
+  // Scenario 8: OA 多张券 - 已废弃 (3 coupons, all discarded — 开学季已过期)
   {
     id: 'TSK-20260324-014',
     name: '开学季文具券',
@@ -1328,9 +1330,9 @@ export const tasks = [
     subTaskCount: 3,
     completedCount: 3,
     totalCouponCount: 3,
-    adminStatus: ADMIN_TASK_STATUS.COMPLETED,
-    bizStatus: BIZ_TASK_STATUS.COMPLETED,
-    confirmedCount: 3,
+    adminStatus: ADMIN_TASK_STATUS.DRAFT_READY,
+    bizStatus: BIZ_TASK_STATUS.DISCARDED,
+    confirmedCount: 0,
     creator: '刘佳琪',
     createdAt: '2026-03-24 10:00',
   },
@@ -1358,7 +1360,8 @@ export function getCouponItemsForTask(taskId) {
 export function getAdminStats() {
   return {
     total: tasks.length,
-    running: tasks.filter((t) => t.adminStatus === ADMIN_TASK_STATUS.CREATING).length,
+    processing: tasks.filter((t) => t.adminStatus === ADMIN_TASK_STATUS.PROCESSING).length,
+    draftReady: tasks.filter((t) => t.adminStatus === ADMIN_TASK_STATUS.DRAFT_READY).length,
     partialError: tasks.filter((t) => t.adminStatus === ADMIN_TASK_STATUS.PARTIAL_ERROR).length,
     error: tasks.filter((t) => t.adminStatus === ADMIN_TASK_STATUS.ERROR).length,
   }
@@ -1367,8 +1370,19 @@ export function getAdminStats() {
 // Stats for biz dashboard
 export function getBizStats() {
   return {
+    processing: tasks.filter((t) => t.bizStatus === BIZ_TASK_STATUS.PROCESSING).length,
     pendingConfirm: tasks.filter((t) => t.bizStatus === BIZ_TASK_STATUS.PENDING_CONFIRM).length,
-    running: tasks.filter((t) => t.bizStatus === BIZ_TASK_STATUS.CREATING).length,
-    completed: tasks.filter((t) => t.bizStatus === BIZ_TASK_STATUS.COMPLETED).length,
+    confirmed: tasks.filter((t) => t.bizStatus === BIZ_TASK_STATUS.CONFIRMED).length,
   }
 }
+
+// ===== AI 助手面板 mock 数据 =====
+
+export const AI_PARSE_MESSAGES = [
+  { delay: 800,  content: '正在解析上传的文件...' },
+  { delay: 2000, content: '已识别 3 张优惠券配置' },
+  { delay: 3000, content: '券 1：满50减10通用券（满减券，全品类适用）' },
+  { delay: 3800, content: '券 2：新品8折券（折扣券，新品类目适用）' },
+  { delay: 4500, content: '券 3：新客立减5元（立减券，新客专享）' },
+  { delay: 5500, content: '解析完成！共 3 张券配置已提交至 AI 任务后台，可在任务列表中查看创建进度。' },
+]

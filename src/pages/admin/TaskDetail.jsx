@@ -13,6 +13,7 @@ import {
   BIZ_TASK_STATUS_COLOR,
   BIZ_COUPON_STATUS,
   BIZ_COUPON_STATUS_COLOR,
+  BIZ_COUPON_EXEC_STEPS,
   TASK_PROGRESS_STEPS,
 } from '../../mock/data'
 import SubTaskDrawer from './SubTaskDrawer'
@@ -20,13 +21,11 @@ import styles from './TaskDetail.module.css'
 
 function getStepStatus(taskStatus) {
   switch (taskStatus) {
-    case ADMIN_TASK_STATUS.QUEUED: return { current: 0, status: 'process' }
-    case ADMIN_TASK_STATUS.PARSING: return { current: 1, status: 'process' }
-    case ADMIN_TASK_STATUS.CREATING: return { current: 2, status: 'process' }
-    case ADMIN_TASK_STATUS.PENDING_CONFIRM: return { current: 3, status: 'process' }
-    case ADMIN_TASK_STATUS.COMPLETED: return { current: 4, status: 'finish' }
-    case ADMIN_TASK_STATUS.PARTIAL_ERROR: return { current: 2, status: 'error' }
-    case ADMIN_TASK_STATUS.ERROR: return { current: 2, status: 'error' }
+    case ADMIN_TASK_STATUS.PENDING: return { current: 0, status: 'process' }
+    case ADMIN_TASK_STATUS.PROCESSING: return { current: 1, status: 'process' }
+    case ADMIN_TASK_STATUS.DRAFT_READY: return { current: 2, status: 'finish' }
+    case ADMIN_TASK_STATUS.PARTIAL_ERROR: return { current: 1, status: 'error' }
+    case ADMIN_TASK_STATUS.ERROR: return { current: 1, status: 'error' }
     default: return { current: 0, status: 'process' }
   }
 }
@@ -139,6 +138,9 @@ export default function TaskDetail({ mode = 'admin' }) {
         }
         if (bizStatus === BIZ_COUPON_STATUS.PENDING_CONFIRM) {
           return <Button type="link" size="small">去确认</Button>
+        }
+        if (bizStatus === BIZ_COUPON_STATUS.DISCARDED) {
+          return <Tag color="default">已废弃</Tag>
         }
         return null
       },

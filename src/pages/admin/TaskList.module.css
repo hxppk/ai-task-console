@@ -34,3 +34,40 @@
 .filterCard {
   margin-bottom: 0;
 }
+
+/* Biz grouped table - group header row */
+.groupRow td {
+  background: #fafafa !important;
+  cursor: pointer;
+}
+
+.groupRow:hover td {
+  background: #f0f0f0 !important;
+}
+
+.groupRowContent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.groupArrow {
+  font-size: 12px;
+  color: #86909c;
+  transition: transform 0.2s;
+  display: inline-flex;
+}
+
+.groupArrowCollapsed {
+  transform: rotate(-90deg);
+}
+
+.bizFilterRow {
+  margin-bottom: 0;
+}
+
+.bizPagination {
+  text-align: right;
+  margin-top: 16px;
+}

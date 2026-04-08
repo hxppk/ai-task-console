@@ -13,8 +13,27 @@
 
 .bubbleSection {
   min-height: 80px;
-  max-height: 360px;
-  overflow: hidden;
+  max-height: 500px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar — antd design tokens */
+.bubbleSection::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bubbleSection::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bubbleSection::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 3px;
+}
+
+.bubbleSection::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
 }
 
 /* Hide Bubble.List loading dots and connector lines */
@@ -29,6 +48,10 @@
 
 .uploadSection {
   padding: 1px 4px;
+}
+
+.storeUploadSection {
+  padding: 16px 48px 8px;
 }
 
 .draggerWrapper {
@@ -50,4 +73,8 @@
 
 .dragger :global(.ant-upload-drag-container) {
   padding: 48px 0 !important;
+}
+
+.storeUploadSection .dragger :global(.ant-upload-drag-container) {
+  padding: 24px 0 !important;
 }

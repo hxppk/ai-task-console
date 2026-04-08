@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Modal, Button, Upload, Avatar, Space } from 'antd'
 import { RobotOutlined, InboxOutlined } from '@ant-design/icons'
 import { Bubble } from '@ant-design/x'
-import { AI_PARSE_MESSAGES } from '../../mock/data'
+import { AI_PARSE_MESSAGES, AI_STORE_PARSE_MESSAGES } from '../../mock/data'
 import { useStreamingMessages } from './useStreamingMessages'
 import styles from './AiAssistantPanel.module.css'
 
@@ -29,18 +29,58 @@ export default function AiAssistantPanel() {
   const [open, setOpen] = useState(false)
   const [fileSelected, setFileSelected] = useState(false)
   const [uploaded, setUploaded] = useState(false)
-  const { visibleMessages, isStreaming, startStreaming, reset } = useStreamingMessages(AI_PARSE_MESSAGES)
+  const [needStoreList, setNeedStoreList] = useState(false)
+  const [storeFileSelected, setStoreFileSelected] = useState(false)
+  const [storeUploaded, setStoreUploaded] = useState(false)
+  const scrollRef = useRef(null)
 
-  const isDone = !isStreaming && uploaded && visibleMessages.length === AI_PARSE_MESSAGES.length
+  const {
+    visibleMessages,
+    isStreaming,
+    startStreaming,
+    reset,
+  } = useStreamingMessages(AI_PARSE_MESSAGES)
+
+  const {
+    visibleMessages: storeMessages,
+    isStreaming: storeStreaming,
+    startStreaming: startStoreStreaming,
+    reset: resetStore,
+  } = useStreamingMessages(AI_STORE_PARSE_MESSAGES)
+
+  // First parse done → need store list
+  const firstParseDone = !isStreaming && uploaded && visibleMessages.length === AI_PARSE_MESSAGES.length
+  // Everything done
+  const allDone = storeUploaded && !storeStreaming && storeMessages.length === AI_STORE_PARSE_MESSAGES.length
+
+  // Show store upload when first parse finishes
+  useEffect(() => {
+    if (firstParseDone && !needStoreList) {
+      setNeedStoreList(true)
+    }
+  }, [firstParseDone, needStoreList])
+
+  // Auto-scroll to bottom when new messages appear
+  useEffect(() => {
+    if (scrollRef.current) {
+      requestAnimationFrame(() => {
+        scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+      })
+    }
+  }, [visibleMessages.length, storeMessages.length, needStoreList])
 
   const handleClose = () => {
     setOpen(false)
     setFileSelected(false)
     setUploaded(false)
+    setNeedStoreList(false)
+    setStoreFileSelected(false)
+    setStoreUploaded(false)
     reset()
+    resetStore()
   }
 
-  const handleFileSelect = (file) => {
+  const handleFileSelect = () => {
     setFileSelected(true)
     return false
   }
@@ -49,6 +89,17 @@ export default function AiAssistantPanel() {
     setUploaded(true)
     setFileSelected(false)
     startStreaming()
+  }
+
+  const handleStoreFileSelect = () => {
+    setStoreFileSelected(true)
+    return false
+  }
+
+  const handleStoreUpload = () => {
+    setStoreUploaded(true)
+    setStoreFileSelected(false)
+    startStoreStreaming()
   }
 
   const bubbleItems = [
@@ -61,7 +112,18 @@ export default function AiAssistantPanel() {
         ? { effect: 'typing', step: 3, interval: 30 }
         : undefined,
     })),
+    ...storeMessages.map((msg, index) => ({
+      key: `store-${index}`,
+      role: 'ai',
+      content: msg.content,
+      typing: storeStreaming && index === storeMessages.length - 1
+        ? { effect: 'typing', step: 3, interval: 30 }
+        : undefined,
+    })),
   ]
+
+  // Show store upload dragger inside the scroll area
+  const showStoreUpload = needStoreList && !storeUploaded
 
   return (
     <>
@@ -92,7 +154,12 @@ export default function AiAssistantPanel() {
                 开始上传
               </Button>
             )}
-            {isDone && (
+            {showStoreUpload && (
+              <Button type="primary" disabled={!storeFileSelected} onClick={handleStoreUpload}>
+                上传门店列表
+              </Button>
+            )}
+            {allDone && (
               <Button type="primary" onClick={handleClose}>
                 完成
               </Button>
@@ -101,12 +168,37 @@ export default function AiAssistantPanel() {
         }
       >
         <div className={styles.modalBody}>
-          <div className={styles.bubbleSection}>
+          <div className={styles.bubbleSection} ref={scrollRef}>
             <Bubble.List
               items={bubbleItems}
               role={aiRole}
-              autoScroll
             />
+
+            {showStoreUpload && (
+              <div className={styles.storeUploadSection}>
+                <Dragger
+                  accept=".xlsx,.xls,.csv"
+                  maxCount={1}
+                  showUploadList={true}
+                  beforeUpload={handleStoreFileSelect}
+                  onRemove={() => setStoreFileSelected(false)}
+                  classNames={{
+                    root: styles.draggerWrapper,
+                    trigger: styles.dragger,
+                  }}
+                >
+                  <p className="ant-upload-drag-icon">
+                    <InboxOutlined style={{ color: '#1677ff', fontSize: 32 }} />
+                  </p>
+                  <p className="ant-upload-text">
+                    将门店列表文件拖拽到此处，或 <span style={{ color: '#1677ff' }}>点击选择文件</span>
+                  </p>
+                  <p className="ant-upload-hint">
+                    支持 .xlsx、.csv 格式，需包含门店 ID 列
+                  </p>
+                </Dragger>
+              </div>
+            )}
           </div>
 
           {!uploaded && (

@@ -47,13 +47,19 @@ export default function TaskDetail({ mode = 'admin' }) {
 
   const adminColumns = [
     { title: '编号', dataIndex: 'id', key: 'id', width: 100 },
-    { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true },
-    { title: 'Skill类型', dataIndex: 'skillType', key: 'skillType', width: 110 },
-    { title: '产出数', dataIndex: 'itemCount', key: 'itemCount', width: 80 },
+    { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true, width: 180 },
+    {
+      title: '执行 SubAgent',
+      key: 'subAgent',
+      width: 140,
+      render: (_, record) => `${record.skillType} Agent`,
+    },
+    { title: 'Skill类型', dataIndex: 'skillType', key: 'skillType', width: 100 },
+    { title: '产出数', dataIndex: 'itemCount', key: 'itemCount', width: 70 },
     {
       title: '进度',
       key: 'progress',
-      width: 100,
+      width: 80,
       render: (_, record) => (
         <span style={{ fontSize: 13, color: '#4e5969' }}>
           {record.completedItemCount}/{record.itemCount}
@@ -64,20 +70,20 @@ export default function TaskDetail({ mode = 'admin' }) {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
+      width: 80,
       render: (status) => <Tag color={ADMIN_COUPON_STATUS_COLOR[status]}>{status}</Tag>,
     },
     {
       title: '耗时',
       dataIndex: 'duration',
       key: 'duration',
-      width: 80,
+      width: 70,
       render: (v) => v || '—',
     },
     {
       title: '操作',
       key: 'action',
-      width: 140,
+      width: 120,
       render: (_, record) => (
         <Space>
           <Button type="link" size="small" onClick={() => setDrawerSubTask(record)}>

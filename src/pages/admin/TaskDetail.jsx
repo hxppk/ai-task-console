@@ -1,17 +1,12 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Breadcrumb, Steps, Table, Tag, Card, Descriptions, Button, Space, Tooltip, Typography, Alert, Badge, Divider } from 'antd'
-import {
-  ArrowLeftOutlined,
-  CheckCircleOutlined,
-  ExclamationCircleOutlined,
-  CloseCircleOutlined,
-  HourglassOutlined,
-} from '@ant-design/icons'
+import { Breadcrumb, Steps, Table, Tag, Card, Descriptions, Button, Space, Typography, Alert, Badge, Divider } from 'antd'
+import { ArrowLeftOutlined } from '@ant-design/icons'
 import {
   getTask,
   getSubTasksForTask,
   getCouponItemsForTask,
+  collectLeafSubTasks,
   ADMIN_TASK_STATUS,
   ADMIN_TASK_STATUS_COLOR,
   ADMIN_COUPON_STATUS,
@@ -47,28 +42,43 @@ export default function TaskDetail({ mode = 'admin' }) {
 
   const backPath = isAdmin ? '/admin/tasks' : '/biz/tasks'
 
-  /* ─── Admin columns ─── */
+  /* ─── Admin columns (tree table) ─── */
   const adminColumns = [
     { title: '编号', dataIndex: 'id', key: 'id', width: 100 },
-    { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true, width: 160 },
+    { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true, width: 180 },
     {
-      title: '执行 Agent', key: 'agent', width: 160,
-      render: (_, record) => <Tag>{record.agent}</Tag>,
+      title: '层级', key: 'level', width: 80,
+      render: (_, record) => {
+        if (!record.level && record.level !== 0) return <span style={{ color: '#999' }}>叶子</span>
+        const labels = ['主任务', '子任务', '孙任务', '曾孙']
+        return <Tag color="geekblue">{labels[record.level] || `L${record.level}`}</Tag>
+      },
     },
     {
-      title: '使用 Skill', key: 'skill', width: 240,
-      render: (_, record) => (
-        <Space size={[4, 4]} wrap>
-          {(record.skills || []).map(s => (
-            <Tag key={s} color={SKILL_COLOR[s]}>{s}</Tag>
-          ))}
-        </Space>
-      ),
+      title: '执行 Agent', key: 'agent', width: 140,
+      render: (_, record) => {
+        if (record.agent === '—' || !record.agent) return <span style={{ color: '#999' }}>—</span>
+        return <Tag>{record.agent}</Tag>
+      },
+    },
+    {
+      title: '使用 Skill', key: 'skill', width: 220,
+      render: (_, record) => {
+        if (!record.skills || record.skills.length === 0) return <span style={{ color: '#999' }}>—</span>
+        return (
+          <Space size={[4, 4]} wrap>
+            {(record.skills || []).map(s => (
+              <Tag key={s} color={SKILL_COLOR[s]}>{s}</Tag>
+            ))}
+          </Space>
+        )
+      },
     },
     {
       title: '产出数', key: 'itemCount', width: 80, align: 'right',
       render: (_, record) => {
-        const n = record.itemCount || 1
+        const n = record.itemCount || 0
+        if (n === 0) return <span style={{ color: '#999' }}>—</span>
         return (
           <Tag
             color={n > 1 ? 'green' : undefined}
@@ -81,43 +91,19 @@ export default function TaskDetail({ mode = 'admin' }) {
       },
     },
     {
-      title: '依赖', key: 'dependsOn', width: 200,
+      title: '确认条件', key: 'confirmCondition', width: 160,
       render: (_, record) => {
-        if (!record.dependsOn || record.dependsOn.length === 0) {
-          return <span style={{ color: '#999' }}>—</span>
+        // Group node: 所有子任务完成
+        if (record.children && record.children.length > 0) {
+          const leafCount = collectLeafSubTasks([record]).length
+          const doneCount = collectLeafSubTasks([record]).filter(s => s.status === ADMIN_COUPON_STATUS.COMPLETED).length
+          return <span style={{ color: doneCount === leafCount ? '#52c41a' : '#faad14' }}>子任务 {doneCount}/{leafCount}</span>
         }
-        const allSubTasks = getSubTasksForTask(taskId)
-        return (
-          <Space size={[4, 4]} wrap>
-            {record.dependsOn.map((depId) => {
-              const dep = allSubTasks.find((s) => s.id === depId)
-              const shortId = depId.split('-').pop()
-              const depCompleted = dep?.status === ADMIN_COUPON_STATUS.COMPLETED
-              const depPendingConfirm = dep?.status === ADMIN_COUPON_STATUS.PENDING_CONFIRM
-              const depWaiting = dep?.status === ADMIN_COUPON_STATUS.WAITING_DEPENDENCY
-              const depFailed = dep?.status === ADMIN_COUPON_STATUS.FAILED
-
-              let color, icon, label
-              if (depFailed) {
-                color = 'error'; icon = <CloseCircleOutlined />; label = '失败'
-              } else if (depPendingConfirm) {
-                color = 'warning'; icon = <ExclamationCircleOutlined />; label = '待确认'
-              } else if (depWaiting) {
-                icon = <HourglassOutlined />; label = '待上游'
-              } else if (depCompleted) {
-                color = 'success'; icon = <CheckCircleOutlined />; label = '已完成'
-              } else {
-                icon = <HourglassOutlined />; label = '等待中'
-              }
-
-              return (
-                <Tooltip key={depId} title={`${dep?.name || depId} (${dep?.agent} Agent) — ${label}`}>
-                  <Tag color={color} icon={icon}>{shortId}</Tag>
-                </Tooltip>
-              )
-            })}
-          </Space>
-        )
+        // Leaf node with dependency condition
+        if (record.dependencyCondition) {
+          return <span style={{ color: '#999', fontSize: 12 }}>{record.dependencyCondition}</span>
+        }
+        return <span style={{ color: '#999' }}>—</span>
       },
     },
     {
@@ -186,12 +172,12 @@ export default function TaskDetail({ mode = 'admin' }) {
 
   /* ─── Admin mode ─── */
   if (isAdmin) {
-    const totalItems = subTasks.reduce((s, n) => s + n.itemCount, 0)
-    const pendingConfirmCount = subTasks.filter(s => s.status === ADMIN_COUPON_STATUS.PENDING_CONFIRM).length
-    const waitingDepCount = subTasks.filter(s => s.status === ADMIN_COUPON_STATUS.WAITING_DEPENDENCY).length
-    const completedCount = subTasks.filter(s => s.status === ADMIN_COUPON_STATUS.COMPLETED).length
-
-    const tableData = [...subTasks]
+    const leafTasks = collectLeafSubTasks(subTasks)
+    const totalItems = leafTasks.reduce((s, n) => s + (n.itemCount || 0), 0)
+    const pendingConfirmCount = leafTasks.filter(s => s.status === ADMIN_COUPON_STATUS.PENDING_CONFIRM).length
+    const waitingDepCount = leafTasks.filter(s => s.status === ADMIN_COUPON_STATUS.WAITING_DEPENDENCY).length
+    const completedCount = leafTasks.filter(s => s.status === ADMIN_COUPON_STATUS.COMPLETED).length
+    const leafCount = leafTasks.length
 
     return (
       <div className={styles.page}>
@@ -228,16 +214,16 @@ export default function TaskDetail({ mode = 'admin' }) {
         <Alert
           type="warning"
           showIcon
-          message="当前阻塞在【SUB-010 建券】待确认 · 确认后 SUB-040 → SUB-050 将依次推进"
+          message="当前阻塞在【SUB-010 建券】待确认 · 确认后 SUB-040 → SUB-050 将随树状确认流依次推进"
           action={<Button size="small" type="primary">去确认 SUB-010</Button>}
         />
 
         <Card
           size="small"
-          title="子任务清单"
+          title="子任务清单（树状）"
           extra={
             <Space split={<Divider type="vertical" />}>
-              <span>子任务 {subTasks.length}</span>
+              <span>叶子任务 {leafCount}</span>
               <span>已完成 <Tag color="success">{completedCount}</Tag></span>
               <span>待确认 <Tag color="warning">{pendingConfirmCount}</Tag></span>
               <span>待上游 <Tag>{waitingDepCount}</Tag></span>
@@ -246,12 +232,13 @@ export default function TaskDetail({ mode = 'admin' }) {
           }
         >
           <Table
-            dataSource={tableData}
+            dataSource={subTasks}
             columns={adminColumns}
             rowKey="id"
             size="middle"
             pagination={false}
-            scroll={{ x: 1380 }}
+            scroll={{ x: 1280 }}
+            defaultExpandAllRows
           />
         </Card>
 

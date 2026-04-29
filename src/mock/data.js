@@ -87,61 +87,105 @@ export const TASK_PROGRESS_STEPS = ['待创建', '创建中', '草稿已就绪']
 // Each task has subtasks (one per Skill): 建玩法, AIGC内容, 创建人群, 建活动落地页, 建券(每张券独立SubTask)
 const subTasksByTask = {
   'TSK-20260308-001': [
-    // ===== L1 物料层（并行，无依赖） =====
+    // ===== 树状结构：主任务 → 子任务（组） → 孙任务（叶子） =====
+    // 子任务组：建活动玩法（含建券 + 建人群 + 建玩法规则）
     {
-      id: 'SUB-010',
-      name: '建券',
-      agent: '建券 Agent',
-      skills: ['选商品', '建券草稿'],
-      status: ADMIN_COUPON_STATUS.PENDING_CONFIRM,
-      itemCount: 3,
+      id: 'SUB-001',
+      name: '建活动玩法',
+      agent: '—',
+      skills: [],
+      status: ADMIN_COUPON_STATUS.PROCESSING,
+      itemCount: 0,
       completedItemCount: 0,
-      duration: '15.0s',
-      skillExecutionLog: [
-        { time: '14:20:03', skill: '选商品', duration: '2.1s', output: '命中商品 12 个' },
-        { time: '14:20:05', skill: '建券草稿', duration: '4.3s', output: '生成优惠券 满30减5' },
-        { time: '14:20:09', skill: '建券草稿', duration: '4.2s', output: '生成优惠券 8折专享' },
-        { time: '14:20:13', skill: '建券草稿', duration: '4.4s', output: '生成优惠券 新客立减10元' },
-      ],
+      duration: null,
+      dependencyCondition: null,
+      skillExecutionLog: [],
       errors: [],
       ext: {},
-      items: [
-        { id: 'ITEM-011', name: '满30减5通用券', status: '待确认', duration: '5.2s', ext: { type: '满减', amount: '5元', scope: '全品类', validRange: '2026-03-10 ~ 03-25', stock: 8000, draftId: 'draft-20260310-001', bizStatus: '待确认' } },
-        { id: 'ITEM-012', name: '8折小程序专享券', status: '待确认', duration: '4.8s', ext: { type: '折扣', amount: '8折', scope: '小程序', validRange: '2026-03-10 ~ 03-25', stock: 3000, draftId: 'draft-20260310-002', bizStatus: '待确认' } },
-        { id: 'ITEM-013', name: '新客立减10元券', status: '待确认', duration: '5.0s', ext: { type: '立减', amount: '10元', scope: '新客专享', validRange: '2026-03-08 ~ 03-31', stock: 2000, draftId: 'draft-20260310-003', bizStatus: '待确认' } },
+      items: [],
+      level: 1,
+      children: [
+        // 叶子：建券（无依赖，可并行）
+        {
+          id: 'SUB-010',
+          name: '建券',
+          agent: '建券 Agent',
+          skills: ['选商品', '建券草稿'],
+          status: ADMIN_COUPON_STATUS.PENDING_CONFIRM,
+          itemCount: 3,
+          completedItemCount: 0,
+          duration: '15.0s',
+          dependencyCondition: null,
+          skillExecutionLog: [
+            { time: '14:20:03', skill: '选商品', duration: '2.1s', output: '命中商品 12 个' },
+            { time: '14:20:05', skill: '建券草稿', duration: '4.3s', output: '生成优惠券 满30减5' },
+            { time: '14:20:09', skill: '建券草稿', duration: '4.2s', output: '生成优惠券 8折专享' },
+            { time: '14:20:13', skill: '建券草稿', duration: '4.4s', output: '生成优惠券 新客立减10元' },
+          ],
+          errors: [],
+          ext: {},
+          items: [
+            { id: 'ITEM-011', name: '满30减5通用券', status: '待确认', duration: '5.2s', ext: { type: '满减', amount: '5元', scope: '全品类', validRange: '2026-03-10 ~ 03-25', stock: 8000, draftId: 'draft-20260310-001', bizStatus: '待确认' } },
+            { id: 'ITEM-012', name: '8折小程序专享券', status: '待确认', duration: '4.8s', ext: { type: '折扣', amount: '8折', scope: '小程序', validRange: '2026-03-10 ~ 03-25', stock: 3000, draftId: 'draft-20260310-002', bizStatus: '待确认' } },
+            { id: 'ITEM-013', name: '新客立减10元券', status: '待确认', duration: '5.0s', ext: { type: '立减', amount: '10元', scope: '新客专享', validRange: '2026-03-08 ~ 03-31', stock: 2000, draftId: 'draft-20260310-003', bizStatus: '待确认' } },
+          ],
+          level: 2,
+        },
+        // 叶子：建人群（无依赖，可并行）
+        {
+          id: 'SUB-020',
+          name: '建人群',
+          agent: '人群圈选 Agent',
+          skills: ['CDP'],
+          status: ADMIN_COUPON_STATUS.COMPLETED,
+          itemCount: 1,
+          completedItemCount: 1,
+          duration: '1.5s',
+          dependencyCondition: null,
+          skillExecutionLog: [
+            { time: '14:20:01', skill: 'CDP', duration: '1.5s', output: '圈选人群 1,200,000 人' },
+          ],
+          errors: [],
+          ext: {
+            crowdSize: '1,200,000',
+            tags: '18-30岁, 女性, 近30天活跃',
+            crowdId: 'CRD-20260308-001',
+          },
+          items: [
+            { id: 'ITEM-020', name: '目标人群-年轻女性', status: '已完成', duration: '1.5s', ext: { crowdSize: '1,200,000', tags: '18-30岁, 女性, 近30天活跃', crowdId: 'CRD-20260308-001' } },
+          ],
+          level: 2,
+        },
+        // 叶子：建玩法规则（隐式依赖：需建券 + 建人群完成）
+        {
+          id: 'SUB-040',
+          name: '建玩法规则',
+          agent: '建玩法 Agent',
+          skills: ['玩法规则生成'],
+          status: ADMIN_COUPON_STATUS.WAITING_DEPENDENCY,
+          itemCount: 1,
+          completedItemCount: 0,
+          duration: null,
+          dependencyCondition: '券池 + 目标人群就绪',
+          skillExecutionLog: [],
+          errors: [],
+          ext: {},
+          items: [],
+          level: 2,
+        },
       ],
     },
-    {
-      id: 'SUB-020',
-      name: '建人群',
-      agent: '人群圈选 Agent',
-      skills: ['CDP'],
-      status: ADMIN_COUPON_STATUS.COMPLETED,
-      itemCount: 1,
-      completedItemCount: 1,
-      duration: '1.5s',
-      skillExecutionLog: [
-        { time: '14:20:01', skill: 'CDP', duration: '1.5s', output: '圈选人群 1,200,000 人' },
-      ],
-      errors: [],
-      ext: {
-        crowdSize: '1,200,000',
-        tags: '18-30岁, 女性, 近30天活跃',
-        crowdId: 'CRD-20260308-001',
-      },
-      items: [
-        { id: 'ITEM-020', name: '目标人群-年轻女性', status: '已完成', duration: '1.5s', ext: { crowdSize: '1,200,000', tags: '18-30岁, 女性, 近30天活跃', crowdId: 'CRD-20260308-001' } },
-      ],
-    },
+    // 子任务组：建 AIGC 活动图（与建活动玩法并行）
     {
       id: 'SUB-030',
-      name: '建 AIGC 图片',
+      name: '建 AIGC 活动图',
       agent: 'AIGC 内容生成 Agent',
       skills: ['文案生成', '生图', '海报合成'],
       status: ADMIN_COUPON_STATUS.COMPLETED,
       itemCount: 3,
       completedItemCount: 3,
       duration: '8.5s',
+      dependencyCondition: null,
       skillExecutionLog: [
         { time: '14:22:10', skill: '文案生成', duration: '1.2s', output: '她值得-38女神节文案×3' },
         { time: '14:22:12', skill: '生图', duration: '5.8s', output: '输出主 KV 图 × 3' },
@@ -158,24 +202,9 @@ const subTasksByTask = {
         { id: 'ITEM-032', name: '活动主视觉-方案B', status: '已完成', duration: '8.5s', ext: { imageType: '主视觉', resolution: '1920×1080', format: 'PNG' } },
         { id: 'ITEM-033', name: '社交分享图', status: '已完成', duration: '8.5s', ext: { imageType: '分享图', resolution: '1080×1080', format: 'PNG' } },
       ],
+      level: 1,
     },
-    // ===== L2 规则层 =====
-    {
-      id: 'SUB-040',
-      name: '建玩法规则',
-      agent: '建玩法 Agent',
-      skills: ['玩法规则生成'],
-      status: ADMIN_COUPON_STATUS.WAITING_DEPENDENCY,
-      itemCount: 1,
-      completedItemCount: 0,
-      duration: null,
-      dependsOn: ['SUB-010', 'SUB-020'],
-      dependencyCondition: '券池 + 目标人群就绪',
-      skillExecutionLog: [],
-      errors: [],
-      ext: {},
-      items: [],
-    },
+    // 叶子：建活动落地页（需建活动玩法 + AIGC 都完成）
     {
       id: 'SUB-050',
       name: '建活动落地页',
@@ -185,12 +214,12 @@ const subTasksByTask = {
       itemCount: 1,
       completedItemCount: 0,
       duration: null,
-      dependsOn: ['SUB-040', 'SUB-030'],
       dependencyCondition: '玩法规则 + AIGC图片就绪',
       skillExecutionLog: [],
       errors: [],
       ext: {},
       items: [],
+      level: 1,
     },
   ],
   'TSK-20260308-002': [
@@ -1121,9 +1150,79 @@ export const tasks = [
   },
 ]
 
-// Helper: get subtasks for a task
+// Helper: flatten tree subtasks into a flat list (includes group nodes and leaves)
+export function flattenSubTasks(subTasks) {
+  const result = []
+  function walk(nodes) {
+    if (!nodes) return
+    for (const node of nodes) {
+      result.push(node)
+      if (node.children && node.children.length > 0) {
+        walk(node.children)
+      }
+    }
+  }
+  walk(subTasks)
+  return result
+}
+
+// Helper: collect leaf nodes only (executable tasks)
+export function collectLeafSubTasks(subTasks) {
+  const result = []
+  function walk(nodes) {
+    if (!nodes) return
+    for (const node of nodes) {
+      if (node.children && node.children.length > 0) {
+        walk(node.children)
+      } else {
+        result.push(node)
+      }
+    }
+  }
+  walk(subTasks)
+  return result
+}
+
+// Helper: collect coupon items recursively from all leaf nodes
+export function collectCouponItemsRecursive(subTasks) {
+  const result = []
+  function walk(nodes) {
+    if (!nodes) return
+    for (const node of nodes) {
+      if (node.children && node.children.length > 0) {
+        walk(node.children)
+      } else if (node.skills && node.skills.includes('建券草稿')) {
+        result.push(...(node.items || []))
+      }
+    }
+  }
+  walk(subTasks)
+  return result
+}
+
+// Helper: rollup status from children to parent
+export function rollupStatus(children) {
+  if (!children || children.length === 0) return null
+  const statuses = children.map(c => c.status)
+  if (statuses.every(s => s === ADMIN_COUPON_STATUS.COMPLETED)) return ADMIN_COUPON_STATUS.COMPLETED
+  if (statuses.some(s => s === ADMIN_COUPON_STATUS.FAILED)) return ADMIN_COUPON_STATUS.FAILED
+  if (statuses.some(s => s === ADMIN_COUPON_STATUS.CREATING || s === ADMIN_COUPON_STATUS.PENDING_CONFIRM)) return ADMIN_COUPON_STATUS.PROCESSING
+  return ADMIN_COUPON_STATUS.QUEUED
+}
+
+// Helper: get subtasks for a task (returns raw tree structure)
 export function getSubTasksForTask(taskId) {
   return subTasksByTask[taskId] || []
+}
+
+// Helper: get flattened subtasks for a task (backward compat for table rendering)
+export function getFlatSubTasksForTask(taskId) {
+  return flattenSubTasks(getSubTasksForTask(taskId))
+}
+
+// Helper: get leaf subtasks for a task (executable nodes only)
+export function getLeafSubTasksForTask(taskId) {
+  return collectLeafSubTasks(getSubTasksForTask(taskId))
 }
 
 // Helper: get a single task by ID
@@ -1131,12 +1230,10 @@ export function getTask(taskId) {
   return tasks.find((t) => t.id === taskId) || null
 }
 
-// Helper: get coupon items for a task (from all 建券 subtasks)
+// Helper: get coupon items for a task (recursively from all leaf nodes)
 export function getCouponItemsForTask(taskId) {
   const subTasks = getSubTasksForTask(taskId)
-  return subTasks
-    .filter(s => s.skills && s.skills.includes('建券草稿'))
-    .flatMap(s => s.items)
+  return collectCouponItemsRecursive(subTasks)
 }
 
 // Stats for admin dashboard

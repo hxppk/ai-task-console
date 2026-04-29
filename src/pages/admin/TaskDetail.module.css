@@ -10,3 +10,65 @@
   gap: 8px;
   margin-top: 8px;
 }
+
+/* ─── Tree table row styles ─── */
+
+.treeRow.level1 > td {
+  background: #f6faff !important;
+}
+
+.treeRow.level2 > td {
+  background: #fafdf8 !important;
+}
+
+.treeRow.leafRow.level1 > td {
+  background: #f9fbfe !important;
+}
+
+.treeRow.groupRow > td {
+  border-top: 1.5px solid #d6e4ff;
+}
+
+/* Node glyph */
+.nodeGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: #e6f4ff;
+  color: #1677ff;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.glyphL2 {
+  background: #f0f5e8;
+  color: #52c41a;
+}
+
+.glyphL1 {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+/* Name text */
+.nameText {
+  font-size: 14px;
+}
+
+.nameGroup .nameText {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.nameL1 {
+  font-weight: 500;
+  color: #262626;
+}
+
+.nameL2 {
+  font-size: 13px;
+  color: #475467;
+}

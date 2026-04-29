@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Breadcrumb, Steps, Table, Tag, Card, Descriptions, Button, Space, Typography, Alert, Badge, Divider } from 'antd'
-import { ArrowLeftOutlined } from '@ant-design/icons'
+import { ArrowLeftOutlined, FolderOpenOutlined, FileTextOutlined, AppstoreOutlined } from '@ant-design/icons'
 import {
   getTask,
   getSubTasksForTask,
@@ -42,16 +42,59 @@ export default function TaskDetail({ mode = 'admin' }) {
 
   const backPath = isAdmin ? '/admin/tasks' : '/biz/tasks'
 
+  /* ─── Tree helpers ─── */
+  const isGroup = (r) => r.children && r.children.length > 0
+
+  function renderName(record) {
+    if (isGroup(record)) {
+      return (
+        <Space className={styles.nameGroup}>
+          <span className={styles.nodeGlyph}><FolderOpenOutlined /></span>
+          <span className={styles.nameText}>{record.name}</span>
+        </Space>
+      )
+    }
+    if (record.level === 2) {
+      return (
+        <Space className={styles.nameLeaf}>
+          <span className={`${styles.nodeGlyph} ${styles.glyphL2}`}><FileTextOutlined /></span>
+          <span className={`${styles.nameText} ${styles.nameL2}`}>{record.name}</span>
+        </Space>
+      )
+    }
+    return (
+      <Space className={styles.nameLeaf}>
+        <span className={`${styles.nodeGlyph} ${styles.glyphL1}`}><AppstoreOutlined /></span>
+        <span className={`${styles.nameText} ${styles.nameL1}`}>{record.name}</span>
+      </Space>
+    )
+  }
+
+  function rowClassName(record) {
+    const cls = [styles.treeRow]
+    if (isGroup(record)) cls.push(styles.groupRow)
+    else cls.push(styles.leafRow)
+    if (record.level === 1) cls.push(styles.level1)
+    if (record.level === 2) cls.push(styles.level2)
+    return cls.join(' ')
+  }
+
   /* ─── Admin columns (tree table) ─── */
   const adminColumns = [
-    { title: '编号', dataIndex: 'id', key: 'id', width: 100 },
-    { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true, width: 180 },
     {
-      title: '层级', key: 'level', width: 80,
+      title: '编号', dataIndex: 'id', key: 'id', width: 100,
+      render: (v, record) => {
+        if (isGroup(record)) return <span style={{ color: '#bbb', fontSize: 12 }}>{v}</span>
+        return <span style={{ fontSize: 12, color: '#888' }}>{v}</span>
+      },
+    },
+    { title: '名称', key: 'name', width: 200, render: (_, r) => renderName(r) },
+    {
+      title: '类型', key: 'level', width: 60,
       render: (_, record) => {
-        if (!record.level && record.level !== 0) return <span style={{ color: '#999' }}>叶子</span>
-        const labels = ['主任务', '子任务', '孙任务', '曾孙']
-        return <Tag color="geekblue">{labels[record.level] || `L${record.level}`}</Tag>
+        if (isGroup(record)) return <Tag color="blue" style={{ fontSize: 11, padding: '0 4px' }}>组</Tag>
+        if (record.level === 2) return <Tag color="green" style={{ fontSize: 11, padding: '0 4px' }}>孙</Tag>
+        return <Tag style={{ fontSize: 11, padding: '0 4px', color: '#999' }}>叶</Tag>
       },
     },
     {
@@ -239,6 +282,8 @@ export default function TaskDetail({ mode = 'admin' }) {
             pagination={false}
             scroll={{ x: 1280 }}
             defaultExpandAllRows
+            rowClassName={rowClassName}
+            expandable={{ indentSize: 28, expandRowByClick: true }}
           />
         </Card>
 

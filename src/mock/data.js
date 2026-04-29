@@ -88,6 +88,7 @@ export const TASK_PROGRESS_STEPS = ['待创建', '创建中', '草稿已就绪']
 const subTasksByTask = {
   'TSK-20260308-001': [
     // ===== 树状结构：主任务 → 子任务（组） → 孙任务（叶子） =====
+    // 树只表达草稿确认聚合，不表达执行依赖。Agent 自行规划生成顺序。
     // 子任务组：建活动玩法（含建券 + 建人群 + 建玩法规则）
     {
       id: 'SUB-001',
@@ -98,14 +99,13 @@ const subTasksByTask = {
       itemCount: 0,
       completedItemCount: 0,
       duration: null,
-      dependencyCondition: null,
       skillExecutionLog: [],
       errors: [],
       ext: {},
       items: [],
       level: 1,
       children: [
-        // 叶子：建券（无依赖，可并行）
+        // 叶子：建券（有 draftId，缺 bizItemId → 待业务确认）
         {
           id: 'SUB-010',
           name: '建券',
@@ -115,7 +115,6 @@ const subTasksByTask = {
           itemCount: 3,
           completedItemCount: 0,
           duration: '15.0s',
-          dependencyCondition: null,
           skillExecutionLog: [
             { time: '14:20:03', skill: '选商品', duration: '2.1s', output: '命中商品 12 个' },
             { time: '14:20:05', skill: '建券草稿', duration: '4.3s', output: '生成优惠券 满30减5' },
@@ -125,13 +124,13 @@ const subTasksByTask = {
           errors: [],
           ext: {},
           items: [
-            { id: 'ITEM-011', name: '满30减5通用券', status: '待确认', duration: '5.2s', ext: { type: '满减', amount: '5元', scope: '全品类', validRange: '2026-03-10 ~ 03-25', stock: 8000, draftId: 'draft-20260310-001', bizStatus: '待确认' } },
-            { id: 'ITEM-012', name: '8折小程序专享券', status: '待确认', duration: '4.8s', ext: { type: '折扣', amount: '8折', scope: '小程序', validRange: '2026-03-10 ~ 03-25', stock: 3000, draftId: 'draft-20260310-002', bizStatus: '待确认' } },
-            { id: 'ITEM-013', name: '新客立减10元券', status: '待确认', duration: '5.0s', ext: { type: '立减', amount: '10元', scope: '新客专享', validRange: '2026-03-08 ~ 03-31', stock: 2000, draftId: 'draft-20260310-003', bizStatus: '待确认' } },
+            { id: 'ITEM-011', name: '满30减5通用券', status: '待确认', duration: '5.2s', ext: { bizItemType: '满减券', type: '满减', amount: '5元', scope: '全品类', validRange: '2026-03-10 ~ 03-25', stock: 8000, draftId: 'draft-20260310-001', bizStatus: '待确认', bizItemId: null, confirmedAt: null } },
+            { id: 'ITEM-012', name: '8折小程序专享券', status: '待确认', duration: '4.8s', ext: { bizItemType: '折扣券', type: '折扣', amount: '8折', scope: '小程序', validRange: '2026-03-10 ~ 03-25', stock: 3000, draftId: 'draft-20260310-002', bizStatus: '待确认', bizItemId: null, confirmedAt: null } },
+            { id: 'ITEM-013', name: '新客立减10元券', status: '待确认', duration: '5.0s', ext: { bizItemType: '立减券', type: '立减', amount: '10元', scope: '新客专享', validRange: '2026-03-08 ~ 03-31', stock: 2000, draftId: 'draft-20260310-003', bizStatus: '待确认', bizItemId: null, confirmedAt: null } },
           ],
           level: 2,
         },
-        // 叶子：建人群（无依赖，可并行）
+        // 叶子：建人群（已确认回传 bizItemId）
         {
           id: 'SUB-020',
           name: '建人群',
@@ -141,7 +140,6 @@ const subTasksByTask = {
           itemCount: 1,
           completedItemCount: 1,
           duration: '1.5s',
-          dependencyCondition: null,
           skillExecutionLog: [
             { time: '14:20:01', skill: 'CDP', duration: '1.5s', output: '圈选人群 1,200,000 人' },
           ],
@@ -152,30 +150,38 @@ const subTasksByTask = {
             crowdId: 'CRD-20260308-001',
           },
           items: [
-            { id: 'ITEM-020', name: '目标人群-年轻女性', status: '已完成', duration: '1.5s', ext: { crowdSize: '1,200,000', tags: '18-30岁, 女性, 近30天活跃', crowdId: 'CRD-20260308-001' } },
+            { id: 'ITEM-020', name: '目标人群-年轻女性', status: '已完成', duration: '1.5s', ext: { bizItemType: '人群包', crowdSize: '1,200,000', tags: '18-30岁, 女性, 近30天活跃', crowdId: 'CRD-20260308-001', draftId: null, bizItemId: 'CRD-20260308-001', confirmedAt: '2026-03-08 15:00' } },
           ],
           level: 2,
         },
-        // 叶子：建玩法规则（隐式依赖：需建券 + 建人群完成）
+        // 叶子：建玩法规则（agent 自行规划顺序，已完成并回传 bizItemId）
         {
           id: 'SUB-040',
           name: '建玩法规则',
           agent: '建玩法 Agent',
           skills: ['玩法规则生成'],
-          status: ADMIN_COUPON_STATUS.WAITING_DEPENDENCY,
+          status: ADMIN_COUPON_STATUS.COMPLETED,
           itemCount: 1,
-          completedItemCount: 0,
-          duration: null,
-          dependencyCondition: '券池 + 目标人群就绪',
-          skillExecutionLog: [],
+          completedItemCount: 1,
+          duration: '3.2s',
+          skillExecutionLog: [
+            { time: '14:21:30', skill: '玩法规则生成', duration: '3.2s', output: '生成 38女神节满减玩法' },
+          ],
           errors: [],
-          ext: {},
-          items: [],
+          ext: {
+            activityType: '满减活动',
+            budget: '50,000元',
+            startTime: '2026-03-08',
+            endTime: '2026-03-15',
+          },
+          items: [
+            { id: 'ITEM-040', name: '38女神节满减玩法', status: '已完成', duration: '3.2s', ext: { bizItemType: '玩法规则', activityType: '满减活动', draftId: 'draft-act-001', bizItemId: 'ACT-20260308-001', confirmedAt: '2026-03-08 15:10' } },
+          ],
           level: 2,
         },
       ],
     },
-    // 子任务组：建 AIGC 活动图（与建活动玩法并行）
+    // 子任务：建 AIGC 活动图（与建活动玩法并行，已完成）
     {
       id: 'SUB-030',
       name: '建 AIGC 活动图',
@@ -185,7 +191,6 @@ const subTasksByTask = {
       itemCount: 3,
       completedItemCount: 3,
       duration: '8.5s',
-      dependencyCondition: null,
       skillExecutionLog: [
         { time: '14:22:10', skill: '文案生成', duration: '1.2s', output: '她值得-38女神节文案×3' },
         { time: '14:22:12', skill: '生图', duration: '5.8s', output: '输出主 KV 图 × 3' },
@@ -198,9 +203,9 @@ const subTasksByTask = {
         prompt: '38女神节主题，粉色浪漫风格，花朵元素，温馨氛围',
       },
       items: [
-        { id: 'ITEM-031', name: '活动主视觉-方案A', status: '已完成', duration: '8.5s', ext: { imageType: '主视觉', resolution: '1920×1080', format: 'PNG' } },
-        { id: 'ITEM-032', name: '活动主视觉-方案B', status: '已完成', duration: '8.5s', ext: { imageType: '主视觉', resolution: '1920×1080', format: 'PNG' } },
-        { id: 'ITEM-033', name: '社交分享图', status: '已完成', duration: '8.5s', ext: { imageType: '分享图', resolution: '1080×1080', format: 'PNG' } },
+        { id: 'ITEM-031', name: '活动主视觉-方案A', status: '已完成', duration: '8.5s', ext: { bizItemType: '主视觉图', imageType: '主视觉', resolution: '1920×1080', format: 'PNG', draftId: null, bizItemId: 'IMG-20260308-001', confirmedAt: '2026-03-08 15:15' } },
+        { id: 'ITEM-032', name: '活动主视觉-方案B', status: '已完成', duration: '8.5s', ext: { bizItemType: '主视觉图', imageType: '主视觉', resolution: '1920×1080', format: 'PNG', draftId: null, bizItemId: 'IMG-20260308-002', confirmedAt: '2026-03-08 15:15' } },
+        { id: 'ITEM-033', name: '社交分享图', status: '已完成', duration: '8.5s', ext: { bizItemType: '分享图', imageType: '分享图', resolution: '1080×1080', format: 'PNG', draftId: null, bizItemId: 'IMG-20260308-003', confirmedAt: '2026-03-08 15:16' } },
       ],
       level: 1,
     },
@@ -210,12 +215,13 @@ const subTasksByTask = {
       name: '建活动落地页',
       agent: '建活动落地页 Agent',
       skills: ['活动搭建'],
-      status: ADMIN_COUPON_STATUS.WAITING_DEPENDENCY,
+      status: ADMIN_COUPON_STATUS.CREATING,
       itemCount: 1,
       completedItemCount: 0,
       duration: null,
-      dependencyCondition: '玩法规则 + AIGC图片就绪',
-      skillExecutionLog: [],
+      skillExecutionLog: [
+        { time: '14:25:00', skill: '活动搭建', duration: null, output: '正在组装落地页...' },
+      ],
       errors: [],
       ext: {},
       items: [],

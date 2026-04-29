@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Breadcrumb, Steps, Table, Tag, Card, Descriptions, Button, Space, Typography, Alert, Badge, Divider } from 'antd'
+import { Breadcrumb, Steps, Table, Tag, Card, Descriptions, Button, Space, Tooltip, Typography, Alert, Badge, Divider } from 'antd'
 import { ArrowLeftOutlined, FolderOpenOutlined, FileTextOutlined, AppstoreOutlined } from '@ant-design/icons'
 import {
   getTask,
@@ -44,6 +44,70 @@ export default function TaskDetail({ mode = 'admin' }) {
 
   /* ─── Tree helpers ─── */
   const isGroup = (r) => r.children && r.children.length > 0
+
+  // Count items with bizItemId (confirmed back to biz system)
+  function countBizItems(nodes) {
+    let total = 0, confirmed = 0
+    function walk(ns) {
+      if (!ns) return
+      for (const n of ns) {
+        if (n.children && n.children.length > 0) {
+          walk(n.children)
+        } else if (n.items && n.items.length > 0) {
+          for (const item of n.items) {
+            total++
+            if (item.ext?.bizItemId) confirmed++
+          }
+        }
+      }
+    }
+    walk(nodes)
+    return { total, confirmed }
+  }
+
+  // Count pending drafts (has draftId but no bizItemId)
+  function countPendingDrafts(nodes) {
+    let count = 0
+    function walk(ns) {
+      if (!ns) return
+      for (const n of ns) {
+        if (n.children && n.children.length > 0) {
+          walk(n.children)
+        } else if (n.items && n.items.length > 0) {
+          for (const item of n.items) {
+            if (item.ext?.draftId && !item.ext?.bizItemId) count++
+          }
+        }
+      }
+    }
+    walk(nodes)
+    return count
+  }
+
+  // Check if all descendants have bizItemId
+  function allDescendantsConfirmed(record) {
+    if (isGroup(record)) {
+      return record.children.every(allDescendantsConfirmed)
+    }
+    if (!record.items || record.items.length === 0) return true
+    return record.items.every(item => item.ext?.bizItemId)
+  }
+
+  // Get names of items missing bizItemId
+  function getMissingItems(record) {
+    const missing = []
+    function walk(n) {
+      if (n.children && n.children.length > 0) {
+        n.children.forEach(walk)
+      } else if (n.items && n.items.length > 0) {
+        n.items.forEach(item => {
+          if (item.ext?.draftId && !item.ext?.bizItemId) missing.push(item.name)
+        })
+      }
+    }
+    walk(record)
+    return missing
+  }
 
   function renderName(record) {
     if (isGroup(record)) {
@@ -134,17 +198,19 @@ export default function TaskDetail({ mode = 'admin' }) {
       },
     },
     {
-      title: '确认条件', key: 'confirmCondition', width: 160,
+      title: '确认进度', key: 'confirmProgress', width: 160,
       render: (_, record) => {
-        // Group node: 所有子任务完成
-        if (record.children && record.children.length > 0) {
-          const leafCount = collectLeafSubTasks([record]).length
-          const doneCount = collectLeafSubTasks([record]).filter(s => s.status === ADMIN_COUPON_STATUS.COMPLETED).length
-          return <span style={{ color: doneCount === leafCount ? '#52c41a' : '#faad14' }}>子任务 {doneCount}/{leafCount}</span>
+        // Group node: count bizItemId across all descendants
+        if (isGroup(record)) {
+          const { total, confirmed } = countBizItems([record])
+          if (total === 0) return <span style={{ color: '#999' }}>—</span>
+          return <span style={{ color: confirmed === total ? '#52c41a' : '#faad14', fontWeight: confirmed === total ? 600 : undefined }}>已回传 {confirmed}/{total}</span>
         }
-        // Leaf node with dependency condition
-        if (record.dependencyCondition) {
-          return <span style={{ color: '#999', fontSize: 12 }}>{record.dependencyCondition}</span>
+        // Leaf node: count bizItemId from items
+        if (record.items && record.items.length > 0) {
+          const total = record.items.length
+          const confirmed = record.items.filter(item => item.ext?.bizItemId).length
+          return <span style={{ color: confirmed === total ? '#52c41a' : '#faad14' }}>已回传 {confirmed}/{total}</span>
         }
         return <span style={{ color: '#999' }}>—</span>
       },
@@ -155,8 +221,7 @@ export default function TaskDetail({ mode = 'admin' }) {
         const map = {
           [ADMIN_COUPON_STATUS.COMPLETED]: { status: 'success', text: '已完成' },
           [ADMIN_COUPON_STATUS.PENDING_CONFIRM]: { status: 'warning', text: '待确认' },
-          [ADMIN_COUPON_STATUS.WAITING_DEPENDENCY]: { status: 'default', text: '待上游' },
-          [ADMIN_COUPON_STATUS.CREATING]: { status: 'processing', text: '创建中' },
+          [ADMIN_COUPON_STATUS.CREATING]: { status: 'processing', text: '生成中' },
           [ADMIN_COUPON_STATUS.FAILED]: { status: 'error', text: '失败' },
           [ADMIN_COUPON_STATUS.QUEUED]: { status: 'default', text: '排队中' },
         }
@@ -165,18 +230,35 @@ export default function TaskDetail({ mode = 'admin' }) {
       },
     },
     {
-      title: '操作', key: 'action', width: 200,
+      title: '操作', key: 'action', width: 220,
       render: (_, record) => {
-        if (record.status === ADMIN_COUPON_STATUS.PENDING_CONFIRM) {
-          return <Space><Button type="link" size="small">去确认</Button><Button type="link" size="small" onClick={() => setDrawerSubTask(record)}>查看详情</Button></Space>
+        // Group node: 去确认/确认跳转 only if all descendants have bizItemId
+        if (isGroup(record)) {
+          const { total, confirmed } = countBizItems([record])
+          if (confirmed === total && total > 0) {
+            return <Button type="primary" size="small">确认跳转</Button>
+          }
+          const missing = getMissingItems(record)
+          return (
+            <Tooltip title={missing.length > 0 ? `待确认: ${missing.join('、')}` : '无产出物'}>
+              <Button type="primary" size="small" disabled>确认跳转</Button>
+            </Tooltip>
+          )
         }
-        if (record.status === ADMIN_COUPON_STATUS.COMPLETED) {
-          return <Button type="link" size="small" onClick={() => setDrawerSubTask(record)}>查看详情</Button>
+        // Leaf node: 去确认 if has draftId but no bizItemId
+        if (record.items && record.items.length > 0) {
+          const hasPending = record.items.some(item => item.ext?.draftId && !item.ext?.bizItemId)
+          if (hasPending) {
+            return <Space><Button type="link" size="small">去确认</Button><Button type="link" size="small" onClick={() => setDrawerSubTask(record)}>详情</Button></Space>
+          }
+          if (record.status === ADMIN_COUPON_STATUS.COMPLETED) {
+            return <Button type="link" size="small" onClick={() => setDrawerSubTask(record)}>详情</Button>
+          }
         }
         if (record.status === ADMIN_COUPON_STATUS.FAILED) {
-          return <Space><Button type="link" size="small">重试</Button><Button type="link" size="small" onClick={() => setDrawerSubTask(record)}>查看详情</Button></Space>
+          return <Space><Button type="link" size="small">重试</Button><Button type="link" size="small" onClick={() => setDrawerSubTask(record)}>详情</Button></Space>
         }
-        if (record.status === ADMIN_COUPON_STATUS.WAITING_DEPENDENCY) {
+        if (record.status === ADMIN_COUPON_STATUS.CREATING || record.status === ADMIN_COUPON_STATUS.QUEUED) {
           return <span style={{ color: '#999' }}>—</span>
         }
         return null
@@ -215,12 +297,16 @@ export default function TaskDetail({ mode = 'admin' }) {
 
   /* ─── Admin mode ─── */
   if (isAdmin) {
-    const leafTasks = collectLeafSubTasks(subTasks)
-    const totalItems = leafTasks.reduce((s, n) => s + (n.itemCount || 0), 0)
-    const pendingConfirmCount = leafTasks.filter(s => s.status === ADMIN_COUPON_STATUS.PENDING_CONFIRM).length
-    const waitingDepCount = leafTasks.filter(s => s.status === ADMIN_COUPON_STATUS.WAITING_DEPENDENCY).length
-    const completedCount = leafTasks.filter(s => s.status === ADMIN_COUPON_STATUS.COMPLETED).length
-    const leafCount = leafTasks.length
+    const { total: bizTotal, confirmed: bizConfirmed } = countBizItems(subTasks)
+    const pendingDrafts = countPendingDrafts(subTasks)
+    const leafCount = collectLeafSubTasks(subTasks).length
+
+    const allConfirmed = bizTotal > 0 && bizConfirmed === bizTotal
+    const alertMsg = pendingDrafts > 0
+      ? `待确认草稿 ${pendingDrafts} 个，全部回传业务 ID 后可确认主任务`
+      : allConfirmed
+        ? '所有产出物已回传业务 ID，可确认主任务'
+        : `产出物回传中：已回传 ${bizConfirmed}/${bizTotal}`
 
     return (
       <div className={styles.page}>
@@ -255,10 +341,10 @@ export default function TaskDetail({ mode = 'admin' }) {
         </Card>
 
         <Alert
-          type="warning"
+          type={allConfirmed ? 'success' : 'warning'}
           showIcon
-          message="当前阻塞在【SUB-010 建券】待确认 · 确认后 SUB-040 → SUB-050 将随树状确认流依次推进"
-          action={<Button size="small" type="primary">去确认 SUB-010</Button>}
+          message={alertMsg}
+          action={pendingDrafts > 0 ? <Button size="small" type="primary">去确认草稿</Button> : allConfirmed ? <Button size="small" type="primary">确认主任务</Button> : null}
         />
 
         <Card
@@ -267,10 +353,8 @@ export default function TaskDetail({ mode = 'admin' }) {
           extra={
             <Space split={<Divider type="vertical" />}>
               <span>叶子任务 {leafCount}</span>
-              <span>已完成 <Tag color="success">{completedCount}</Tag></span>
-              <span>待确认 <Tag color="warning">{pendingConfirmCount}</Tag></span>
-              <span>待上游 <Tag>{waitingDepCount}</Tag></span>
-              <span>产出物 <Tag color="blue">{totalItems} 件</Tag></span>
+              <span>已回传 <Tag color="success">{bizConfirmed}/{bizTotal}</Tag></span>
+              <span>待确认草稿 <Tag color="warning">{pendingDrafts}</Tag></span>
             </Space>
           }
         >

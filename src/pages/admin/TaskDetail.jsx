@@ -45,7 +45,14 @@ export default function TaskDetail({ mode = 'admin' }) {
   /* ─── Tree helpers ─── */
   const isGroup = (r) => r.children && r.children.length > 0
 
-  // Count items with bizItemId (confirmed back to biz system)
+  function getLeafProgress(record) {
+    const items = record.items || []
+    const total = Math.max(items.length, record.itemCount || 0)
+    const confirmed = items.filter(item => item.ext?.bizItemId).length
+    return { total, confirmed, generated: items.length }
+  }
+
+  // Count expected leaf outputs and bizItemId confirmations.
   function countBizItems(nodes) {
     let total = 0, confirmed = 0
     function walk(ns) {
@@ -53,11 +60,10 @@ export default function TaskDetail({ mode = 'admin' }) {
       for (const n of ns) {
         if (n.children && n.children.length > 0) {
           walk(n.children)
-        } else if (n.items && n.items.length > 0) {
-          for (const item of n.items) {
-            total++
-            if (item.ext?.bizItemId) confirmed++
-          }
+        } else {
+          const progress = getLeafProgress(n)
+          total += progress.total
+          confirmed += progress.confirmed
         }
       }
     }
@@ -89,8 +95,9 @@ export default function TaskDetail({ mode = 'admin' }) {
     if (isGroup(record)) {
       return record.children.every(allDescendantsConfirmed)
     }
-    if (!record.items || record.items.length === 0) return true
-    return record.items.every(item => item.ext?.bizItemId)
+    const { total, confirmed, generated } = getLeafProgress(record)
+    if (total === 0) return true
+    return generated >= total && confirmed === total
   }
 
   // Get names of items missing bizItemId
@@ -99,10 +106,17 @@ export default function TaskDetail({ mode = 'admin' }) {
     function walk(n) {
       if (n.children && n.children.length > 0) {
         n.children.forEach(walk)
-      } else if (n.items && n.items.length > 0) {
-        n.items.forEach(item => {
-          if (item.ext?.draftId && !item.ext?.bizItemId) missing.push(item.name)
+      } else {
+        const items = n.items || []
+        items.forEach(item => {
+          if (!item.ext?.bizItemId) {
+            missing.push(item.ext?.draftId ? item.name : `${item.name}（待生成草稿）`)
+          }
         })
+        const missingGeneratedCount = Math.max((n.itemCount || 0) - items.length, 0)
+        if (missingGeneratedCount > 0) {
+          missing.push(`${n.name}（待生成 ${missingGeneratedCount} 个）`)
+        }
       }
     }
     walk(record)
@@ -207,9 +221,8 @@ export default function TaskDetail({ mode = 'admin' }) {
           return <span style={{ color: confirmed === total ? '#52c41a' : '#faad14', fontWeight: confirmed === total ? 600 : undefined }}>已回传 {confirmed}/{total}</span>
         }
         // Leaf node: count bizItemId from items
-        if (record.items && record.items.length > 0) {
-          const total = record.items.length
-          const confirmed = record.items.filter(item => item.ext?.bizItemId).length
+        const { total, confirmed } = getLeafProgress(record)
+        if (total > 0) {
           return <span style={{ color: confirmed === total ? '#52c41a' : '#faad14' }}>已回传 {confirmed}/{total}</span>
         }
         return <span style={{ color: '#999' }}>—</span>
@@ -235,7 +248,7 @@ export default function TaskDetail({ mode = 'admin' }) {
         // Group node: 去确认/确认跳转 only if all descendants have bizItemId
         if (isGroup(record)) {
           const { total, confirmed } = countBizItems([record])
-          if (confirmed === total && total > 0) {
+          if (total > 0 && allDescendantsConfirmed(record)) {
             return <Button type="primary" size="small">确认跳转</Button>
           }
           const missing = getMissingItems(record)

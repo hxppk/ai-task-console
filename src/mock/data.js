@@ -19,7 +19,6 @@ export const BIZ_TASK_STATUS = {
 export const ADMIN_COUPON_STATUS = {
   QUEUED: '排队中',
   CREATING: '创建中',
-  WAITING_DEPENDENCY: '等待依赖',
   PENDING_CONFIRM: '待确认',
   COMPLETED: '已完成',
   FAILED: '失败',
@@ -45,7 +44,6 @@ export const ADMIN_TASK_STATUS_COLOR = {
 export const ADMIN_COUPON_STATUS_COLOR = {
   [ADMIN_COUPON_STATUS.QUEUED]: 'default',
   [ADMIN_COUPON_STATUS.CREATING]: 'processing',
-  [ADMIN_COUPON_STATUS.WAITING_DEPENDENCY]: 'warning',
   [ADMIN_COUPON_STATUS.PENDING_CONFIRM]: 'gold',
   [ADMIN_COUPON_STATUS.COMPLETED]: 'success',
   [ADMIN_COUPON_STATUS.FAILED]: 'error',
@@ -95,7 +93,7 @@ const subTasksByTask = {
       name: '建活动玩法',
       agent: '—',
       skills: [],
-      status: ADMIN_COUPON_STATUS.PROCESSING,
+      status: ADMIN_COUPON_STATUS.PENDING_CONFIRM,
       itemCount: 0,
       completedItemCount: 0,
       duration: null,
@@ -1212,7 +1210,8 @@ export function rollupStatus(children) {
   const statuses = children.map(c => c.status)
   if (statuses.every(s => s === ADMIN_COUPON_STATUS.COMPLETED)) return ADMIN_COUPON_STATUS.COMPLETED
   if (statuses.some(s => s === ADMIN_COUPON_STATUS.FAILED)) return ADMIN_COUPON_STATUS.FAILED
-  if (statuses.some(s => s === ADMIN_COUPON_STATUS.CREATING || s === ADMIN_COUPON_STATUS.PENDING_CONFIRM)) return ADMIN_COUPON_STATUS.PROCESSING
+  if (statuses.some(s => s === ADMIN_COUPON_STATUS.PENDING_CONFIRM)) return ADMIN_COUPON_STATUS.PENDING_CONFIRM
+  if (statuses.some(s => s === ADMIN_COUPON_STATUS.CREATING)) return ADMIN_COUPON_STATUS.CREATING
   return ADMIN_COUPON_STATUS.QUEUED
 }
 

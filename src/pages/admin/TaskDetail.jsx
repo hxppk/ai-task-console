@@ -247,7 +247,7 @@ export default function TaskDetail({ mode = 'admin' }) {
       render: (_, record) => {
         // Group node: 去确认/确认跳转 only if all descendants have bizItemId
         if (isGroup(record)) {
-          const { total, confirmed } = countBizItems([record])
+          const { total } = countBizItems([record])
           if (total > 0 && allDescendantsConfirmed(record)) {
             return <Button type="primary" size="small">确认跳转</Button>
           }
